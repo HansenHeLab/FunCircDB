@@ -1,0 +1,331 @@
+import { useMemo, useRef, useCallback } from 'react';
+
+/**
+ * ClinicalExpressionPlot - Box plot visualization for clinical expression data
+ * 
+ * Renders grouped box plots using SVG, similar to the R ggplot2 version.
+ * Groups data by cancer type, subtype, or patient cohort.
+ */
+
+export interface BoxPlotData {
+    group: string;
+    values: number[];
+}
+
+export interface ClinicalExpressionPlotProps {
+    data: BoxPlotData[];
+    title?: string;
+    xAxisLabel?: string;
+    yAxisLabel?: string;
+    colorScheme?: string[];
+}
+
+// Calculate box plot statistics
+function calculateBoxStats(values: number[]) {
+    if (values.length === 0) return null;
+
+    const sorted = [...values].sort((a, b) => a - b);
+    const n = sorted.length;
+
+    const q1Index = Math.floor(n * 0.25);
+    const medianIndex = Math.floor(n * 0.5);
+    const q3Index = Math.floor(n * 0.75);
+
+    const q1 = sorted[q1Index];
+    const median = sorted[medianIndex];
+    const q3 = sorted[q3Index];
+    const iqr = q3 - q1;
+
+    const lowerWhisker = Math.max(sorted[0], q1 - 1.5 * iqr);
+    const upperWhisker = Math.min(sorted[n - 1], q3 + 1.5 * iqr);
+
+    // Outliers
+    const outliers = sorted.filter(v => v < lowerWhisker || v > upperWhisker);
+
+    return { q1, median, q3, lowerWhisker, upperWhisker, outliers, min: sorted[0], max: sorted[n - 1] };
+}
+
+const DEFAULT_COLORS = [
+    '#4299e1', '#48bb78', '#ed8936', '#f56565', '#9f7aea',
+    '#38b2ac', '#ed64a6', '#667eea', '#fc8181', '#68d391',
+];
+
+export function ClinicalExpressionPlot({
+    data,
+    title,
+    xAxisLabel = 'Group',
+    yAxisLabel = 'Expression',
+    colorScheme = DEFAULT_COLORS,
+}: ClinicalExpressionPlotProps) {
+    // Calculate stats for each group
+    const boxStats = useMemo(() => {
+        return data.map(d => ({
+            group: d.group,
+            stats: calculateBoxStats(d.values),
+            values: d.values,
+        }));
+    }, [data]);
+
+    // Layout
+    const margin = { top: 60, right: 40, bottom: 120, left: 80 };
+    const boxWidth = 60;
+    const boxGap = 30;
+    const chartWidth = Math.max(400, data.length * (boxWidth + boxGap) + margin.left + margin.right);
+    const chartHeight = 400;
+    const plotWidth = chartWidth - margin.left - margin.right;
+    const plotHeight = chartHeight - margin.top - margin.bottom;
+
+    // Y scale
+    const allValues = data.flatMap(d => d.values);
+    const yMin = Math.min(...allValues) * 0.9;
+    const yMax = Math.max(...allValues) * 1.1;
+    const yScale = (v: number) => plotHeight - ((v - yMin) / (yMax - yMin)) * plotHeight;
+
+    // X positions - center properly for single box
+    const totalBoxSpace = data.length * boxWidth + (data.length - 1) * boxGap;
+    const startX = margin.left + (plotWidth - totalBoxSpace) / 2 + boxWidth / 2;
+    const xPositions = data.map((_, i) => startX + i * (boxWidth + boxGap));
+
+    if (data.length === 0) {
+        return (
+            <div className="viz-container">
+                <p style={{ color: 'var(--color-text-secondary)', textAlign: 'center' }}>
+                    No data available for visualization.
+                </p>
+            </div>
+        );
+    }
+
+    // SVG ref and download handler
+    const svgRef = useRef<SVGSVGElement>(null);
+
+    const handleDownloadSVG = useCallback(() => {
+        if (!svgRef.current) return;
+        const svgData = new XMLSerializer().serializeToString(svgRef.current);
+        const blob = new Blob([svgData], { type: 'image/svg+xml' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${title || 'clinical_expression'}.svg`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    }, [title]);
+
+    return (
+        <div className="viz-container">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-sm)' }}>
+                <h3 className="viz-title" style={{ margin: 0 }}>{title || 'Clinical Expression'}</h3>
+                <button
+                    onClick={handleDownloadSVG}
+                    style={{
+                        padding: '6px 12px',
+                        fontSize: '0.875rem',
+                        background: 'var(--color-surface)',
+                        border: '1px solid var(--color-border)',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                    }}
+                >
+                    Download SVG
+                </button>
+            </div>
+
+            <svg
+                ref={svgRef}
+                width={chartWidth}
+                height={chartHeight}
+                style={{ fontFamily: 'Inter, sans-serif', display: 'block', margin: '0 auto' }}
+            >
+                {/* Y Axis */}
+                <line
+                    x1={margin.left}
+                    y1={margin.top}
+                    x2={margin.left}
+                    y2={margin.top + plotHeight}
+                    stroke="var(--color-border)"
+                    strokeWidth="1"
+                />
+
+                {/* Y Axis ticks */}
+                {[0, 0.25, 0.5, 0.75, 1].map(pct => {
+                    const yVal = yMin + pct * (yMax - yMin);
+                    const y = margin.top + yScale(yVal);
+                    return (
+                        <g key={pct}>
+                            <line
+                                x1={margin.left - 5}
+                                y1={y}
+                                x2={margin.left}
+                                y2={y}
+                                stroke="var(--color-text-secondary)"
+                            />
+                            <text
+                                x={margin.left - 10}
+                                y={y + 4}
+                                textAnchor="end"
+                                fontSize="10"
+                                fill="var(--color-text-secondary)"
+                            >
+                                {yVal.toFixed(1)}
+                            </text>
+                        </g>
+                    );
+                })}
+
+                {/* Y Axis Label */}
+                <text
+                    x={margin.left - 50}
+                    y={margin.top + plotHeight / 2}
+                    textAnchor="middle"
+                    fontSize="12"
+                    fontWeight="500"
+                    fill="var(--color-text)"
+                    transform={`rotate(-90, ${margin.left - 50}, ${margin.top + plotHeight / 2})`}
+                >
+                    {yAxisLabel}
+                </text>
+
+                {/* X Axis */}
+                <line
+                    x1={margin.left}
+                    y1={margin.top + plotHeight}
+                    x2={margin.left + plotWidth}
+                    y2={margin.top + plotHeight}
+                    stroke="var(--color-border)"
+                    strokeWidth="1"
+                />
+
+                {/* X Axis Label */}
+                <text
+                    x={margin.left + plotWidth / 2}
+                    y={chartHeight - 10}
+                    textAnchor="middle"
+                    fontSize="12"
+                    fontWeight="500"
+                    fill="var(--color-text)"
+                >
+                    {xAxisLabel}
+                </text>
+
+                {/* Box plots */}
+                {boxStats.map((item, i) => {
+                    if (!item.stats) return null;
+                    const { q1, median, q3, lowerWhisker, upperWhisker, outliers } = item.stats;
+                    const x = xPositions[i];
+                    const color = colorScheme[i % colorScheme.length];
+
+                    return (
+                        <g key={item.group}>
+                            {/* Whisker line */}
+                            <line
+                                x1={x}
+                                y1={margin.top + yScale(upperWhisker)}
+                                x2={x}
+                                y2={margin.top + yScale(lowerWhisker)}
+                                stroke={color}
+                                strokeWidth="1"
+                            />
+
+                            {/* Upper whisker cap */}
+                            <line
+                                x1={x - boxWidth / 4}
+                                y1={margin.top + yScale(upperWhisker)}
+                                x2={x + boxWidth / 4}
+                                y2={margin.top + yScale(upperWhisker)}
+                                stroke={color}
+                                strokeWidth="1"
+                            />
+
+                            {/* Lower whisker cap */}
+                            <line
+                                x1={x - boxWidth / 4}
+                                y1={margin.top + yScale(lowerWhisker)}
+                                x2={x + boxWidth / 4}
+                                y2={margin.top + yScale(lowerWhisker)}
+                                stroke={color}
+                                strokeWidth="1"
+                            />
+
+                            {/* Box */}
+                            <rect
+                                x={x - boxWidth / 2}
+                                y={margin.top + yScale(q3)}
+                                width={boxWidth}
+                                height={yScale(q1) - yScale(q3)}
+                                fill={color}
+                                fillOpacity="0.3"
+                                stroke={color}
+                                strokeWidth="1.5"
+                            />
+
+                            {/* Median line */}
+                            <line
+                                x1={x - boxWidth / 2}
+                                y1={margin.top + yScale(median)}
+                                x2={x + boxWidth / 2}
+                                y2={margin.top + yScale(median)}
+                                stroke={color}
+                                strokeWidth="2"
+                            />
+
+                            {/* Data points (jittered) */}
+                            {item.values.map((v, j) => (
+                                <circle
+                                    key={j}
+                                    cx={x + (Math.random() - 0.5) * boxWidth * 0.6}
+                                    cy={margin.top + yScale(v)}
+                                    r={3}
+                                    fill={color}
+                                    fillOpacity="0.6"
+                                />
+                            ))}
+
+                            {/* Outliers (distinct markers) */}
+                            {outliers.map((v, j) => (
+                                <circle
+                                    key={`outlier-${j}`}
+                                    cx={x}
+                                    cy={margin.top + yScale(v)}
+                                    r={4}
+                                    fill="none"
+                                    stroke={color}
+                                    strokeWidth={1.5}
+                                />
+                            ))}
+
+                            {/* Group label - pushed down */}
+                            <text
+                                x={x}
+                                y={margin.top + plotHeight + 40}
+                                textAnchor="end"
+                                fontSize="11"
+                                fill="var(--color-text)"
+                                transform={`rotate(-45, ${x}, ${margin.top + plotHeight + 40})`}
+                            >
+                                {item.group}
+                            </text>
+                        </g>
+                    );
+                })}
+
+                {/* Title */}
+                {title && (
+                    <text
+                        x={chartWidth / 2}
+                        y={25}
+                        textAnchor="middle"
+                        fontSize="14"
+                        fontWeight="600"
+                        fill="var(--color-text)"
+                    >
+                        {title}
+                    </text>
+                )}
+            </svg>
+        </div>
+    );
+}
+
+export default ClinicalExpressionPlot;
