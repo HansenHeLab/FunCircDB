@@ -64,6 +64,17 @@ export default function LiuScreenPlot({
         return points;
     }, [cleanData, xScale, yScale]);
 
+    // Ticks
+    const xTicks = useMemo(() => {
+        const step = maxRank / 5;
+        return Array.from({ length: 6 }, (_, i) => Math.round(i * step));
+    }, [maxRank]);
+
+    const yTicks = useMemo(() => {
+        const step = (maxScore - minScore) / 5;
+        return Array.from({ length: 6 }, (_, i) => minScore + i * step);
+    }, [minScore, maxScore]);
+
     // Trendline Path string
     const trendPath = `M ${trendLine.map(p => `${p[0]},${p[1]}`).join(' L ')}`;
 
@@ -84,6 +95,37 @@ export default function LiuScreenPlot({
                     {/* Axes lines */}
                     <line x1={0} y1={chartHeight} x2={chartWidth} y2={chartHeight} stroke="var(--color-border)" />
                     <line x1={0} y1={0} x2={0} y2={chartHeight} stroke="var(--color-border)" />
+
+                    {/* X Ticks */}
+                    {xTicks.map(tick => (
+                        <g key={`xtick-${tick}`} transform={`translate(${xScale(tick)}, ${chartHeight})`}>
+                            <line y1={0} y2={5} stroke="var(--color-border)" />
+                            <text
+                                y={20}
+                                textAnchor="middle"
+                                fontSize={10}
+                                fill="var(--color-text-secondary)"
+                            >
+                                {tick}
+                            </text>
+                        </g>
+                    ))}
+
+                    {/* Y Ticks */}
+                    {yTicks.map(tick => (
+                        <g key={`ytick-${tick}`} transform={`translate(0, ${yScale(tick)})`}>
+                            <line x1={-5} x2={0} stroke="var(--color-border)" />
+                            <text
+                                x={-10}
+                                y={3}
+                                textAnchor="end"
+                                fontSize={10}
+                                fill="var(--color-text-secondary)"
+                            >
+                                {tick.toFixed(2)}
+                            </text>
+                        </g>
+                    ))}
 
                     {/* X Axis Label */}
                     <text

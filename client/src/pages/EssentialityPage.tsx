@@ -357,14 +357,18 @@ export default function EssentialityPage() {
                                         <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#2563eb' }}></div>
                                         <span>Negative log₂FC</span>
                                     </div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
-                                        <div style={{ width: 12, height: 12, border: '1px solid #ddd', background: '#000' }}></div>
-                                        <span>Significant (p &lt; 0.05)</span>
-                                    </div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
-                                        <div style={{ width: 12, height: 12, border: '1px solid #ddd', background: '#fff' }}></div>
-                                        <span>Not Significant</span>
-                                    </div>
+                                    {selectedStudy !== 'liu-et-al' && (
+                                        <>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
+                                                <div style={{ width: 12, height: 12, border: '1px solid #ddd', background: '#000' }}></div>
+                                                <span>Significant (p &lt; 0.05)</span>
+                                            </div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
+                                                <div style={{ width: 12, height: 12, border: '1px solid #ddd', background: '#fff' }}></div>
+                                                <span>Not Significant</span>
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
                             </div>
                         ) : (
