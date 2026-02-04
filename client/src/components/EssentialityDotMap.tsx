@@ -15,6 +15,7 @@ export interface EssentialityDotMapProps {
     colLabels: string[];
     title?: string;
     onCellClick?: (row: number, col: number, value: number, pvalue: number) => void;
+    showPValueLegend?: boolean;
 }
 
 // BoutrosLab dotmap color palette
@@ -70,6 +71,7 @@ export function EssentialityDotMap({
     colLabels,
     title,
     onCellClick,
+    showPValueLegend = true,
 }: EssentialityDotMapProps) {
     const svgRef = useRef<SVGSVGElement>(null);
     const [tooltip, setTooltip] = useState<TooltipState>({
@@ -280,28 +282,30 @@ export function EssentialityDotMap({
                     </g>
 
                     {/* P-value color legend */}
-                    <g transform={`translate(${leftMargin}, ${topMargin + numRows * cellSize + 20})`}>
-                        <text fontSize="11" fontWeight="600" fill="var(--color-text)">p-value</text>
-                        <defs>
-                            <linearGradient id="pval-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                                <stop offset="0%" stopColor={getPValueColor(0)} />
-                                <stop offset="25%" stopColor={getPValueColor(0.05)} />
-                                <stop offset="100%" stopColor={getPValueColor(1)} />
-                            </linearGradient>
-                        </defs>
-                        <rect
-                            x={0}
-                            y={15}
-                            width={150}
-                            height={12}
-                            fill="url(#pval-gradient)"
-                            stroke="var(--color-border)"
-                            strokeWidth="0.5"
-                        />
-                        <text x={0} y={38} fontSize="9" fill="var(--color-text-secondary)">0</text>
-                        <text x={35} y={38} fontSize="9" fill="var(--color-text-secondary)">0.05</text>
-                        <text x={145} y={38} fontSize="9" fill="var(--color-text-secondary)" textAnchor="end">1</text>
-                    </g>
+                    {showPValueLegend && (
+                        <g transform={`translate(${leftMargin}, ${topMargin + numRows * cellSize + 20})`}>
+                            <text fontSize="11" fontWeight="600" fill="var(--color-text)">p-value</text>
+                            <defs>
+                                <linearGradient id="pval-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                    <stop offset="0%" stopColor={getPValueColor(0)} />
+                                    <stop offset="25%" stopColor={getPValueColor(0.05)} />
+                                    <stop offset="100%" stopColor={getPValueColor(1)} />
+                                </linearGradient>
+                            </defs>
+                            <rect
+                                x={0}
+                                y={15}
+                                width={150}
+                                height={12}
+                                fill="url(#pval-gradient)"
+                                stroke="var(--color-border)"
+                                strokeWidth="0.5"
+                            />
+                            <text x={0} y={38} fontSize="9" fill="var(--color-text-secondary)">0</text>
+                            <text x={35} y={38} fontSize="9" fill="var(--color-text-secondary)">0.05</text>
+                            <text x={145} y={38} fontSize="9" fill="var(--color-text-secondary)" textAnchor="end">1</text>
+                        </g>
+                    )}
                 </svg>
             </div>
 

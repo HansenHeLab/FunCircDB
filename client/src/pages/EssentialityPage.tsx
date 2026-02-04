@@ -279,6 +279,7 @@ export default function EssentialityPage() {
                                             }}
                                             rowLabels={essentialityData.rowLabels || []}
                                             colLabels={essentialityData.colLabels || []}
+                                            showPValueLegend={false}
                                         />
                                     </div>
                                 ) : (

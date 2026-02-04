@@ -161,11 +161,9 @@ export default function HomePage() {
                                     <li><span style={{ color: '#dc2626', fontWeight: 'bold' }}>Red (Positive)</span> – Enriched</li>
                                 </ul>
                             </li>
-                            <li style={{ marginTop: 'var(--spacing-xs)' }}><strong>Significance:</strong>
-                                <ul style={{ paddingLeft: 'var(--spacing-md)', marginTop: 'var(--spacing-xs)' }}>
-                                    <li><strong>Core essential:</strong> Threshold-based (score + consistency across ≥17 of 18 cell lines for primary; ≥7 of 11 for secondary)</li>
-                                    <li><strong>Context-specific (WNT, KRAS, BRAF):</strong> P-value from t-test (P ≤ 0.15 used as cutoff)</li>
-                                </ul>
+                            <li style={{ marginTop: 'var(--spacing-xs)' }}><strong>Background Color:</strong> None (threshold-based significance, not statistical tests for core essentiality)</li>
+                            <li style={{ marginTop: 'var(--spacing-xs)', listStyle: 'none' }}>
+                                <strong>Note:</strong> Context-specific circRNAs (WNT, KRAS, BRAF) used t-test P ≤ 0.15, but this is not displayed in the current visualization.
                             </li>
                         </ul>
                     </div>
