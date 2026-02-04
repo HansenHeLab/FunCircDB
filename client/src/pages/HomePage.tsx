@@ -116,28 +116,48 @@ export default function HomePage() {
                     borderLeft: '4px solid var(--color-primary)'
                 }}>
                     <h3 style={{ marginBottom: 'var(--spacing-sm)', color: 'var(--color-primary)' }}>Understanding the Dotmap Visualization</h3>
-                    <p style={{ lineHeight: '1.8', marginBottom: 'var(--spacing-md)' }}>
-                        The dotmap visualizes circRNA essentiality screen results from <strong>MAGeCK</strong> (Model-based Analysis of Genome-wide CRISPR-Cas9 Knockout) analysis. Each dot represents a circRNA's effect in a specific cell line:
-                    </p>
-                    <ul style={{ paddingLeft: 'var(--spacing-lg)', lineHeight: '2' }}>
-                        <li><strong>Dot Color (Log₂ Fold Change):</strong>
-                            <ul style={{ paddingLeft: 'var(--spacing-md)', lineHeight: '1.8', marginTop: 'var(--spacing-xs)' }}>
-                                <li><span style={{ color: '#2563eb', fontWeight: 'bold' }}>Blue (Negative log₂FC)</span> – circRNA guides are depleted/dropped out (cell viability decreased)</li>
-                                <li><span style={{ color: '#dc2626', fontWeight: 'bold' }}>Red (Positive log₂FC)</span> – circRNA guides are enriched (cell viability increased)</li>
-                            </ul>
-                        </li>
-                        <li><strong>Dot Size:</strong> Larger dots indicate greater absolute log₂FC magnitude</li>
-                        <li><strong>Background Color (P-value):</strong>
-                            <ul style={{ paddingLeft: 'var(--spacing-md)', lineHeight: '1.8', marginTop: 'var(--spacing-xs)' }}>
-                                <li><strong>Black</strong> – Statistically significant (p &lt; 0.05)</li>
-                                <li><strong>White</strong> – Not significant</li>
-                            </ul>
-                        </li>
-                    </ul>
-                    <p style={{ lineHeight: '1.8', marginTop: 'var(--spacing-md)' }}>
-                        <strong>Positive Selection (pos):</strong> Identifies circRNAs whose knockdown causes cells to grow faster (potential tumor suppressors).<br />
-                        <strong>Negative Selection (neg):</strong> Identifies circRNAs whose knockdown causes cells to die/grow slower (essential for viability, potential oncogenes).
-                    </p>
+
+                    <div style={{ marginBottom: 'var(--spacing-lg)' }}>
+                        <h4 style={{ fontSize: '1rem', color: 'var(--color-text)', marginBottom: 'var(--spacing-xs)' }}>
+                            For <strong>Her et al.</strong> and <strong>Chen et al.</strong> (MAGeCK Analysis)
+                        </h4>
+                        <p style={{ lineHeight: '1.8', marginBottom: 'var(--spacing-sm)', fontSize: '0.95rem' }}>
+                            These studies use <strong>MAGeCK</strong> analysis, splitting results into Positive and Negative selection tables:
+                        </p>
+                        <ul style={{ paddingLeft: 'var(--spacing-lg)', lineHeight: '1.8', fontSize: '0.95rem' }}>
+                            <li><strong>Dot Color (Log₂ Fold Change):</strong>
+                                <ul style={{ paddingLeft: 'var(--spacing-md)', marginTop: 'var(--spacing-xs)' }}>
+                                    <li><span style={{ color: '#2563eb', fontWeight: 'bold' }}>Blue</span> – Depleted</li>
+                                    <li><span style={{ color: '#dc2626', fontWeight: 'bold' }}>Red</span> – Enriched</li>
+                                </ul>
+                            </li>
+                            <li><strong>Background Color (P-value):</strong>
+                                <ul style={{ paddingLeft: 'var(--spacing-md)', marginTop: 'var(--spacing-xs)' }}>
+                                    <li><strong>Black</strong> – Statistically significant (p &lt; 0.05)</li>
+                                    <li><strong>White</strong> – Not significant</li>
+                                </ul>
+                            </li>
+                            <li><strong>Pos vs Neg:</strong> Separate maps depending on whether the circRNA is selected for (enriched) or against (depleted).</li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h4 style={{ fontSize: '1rem', color: 'var(--color-text)', marginBottom: 'var(--spacing-xs)' }}>
+                            For <strong>Liu et al.</strong> (PoolQ analysis)
+                        </h4>
+                        <p style={{ lineHeight: '1.8', marginBottom: 'var(--spacing-sm)', fontSize: '0.95rem' }}>
+                            This study uses <strong>PoolQ</strong> analysis to calculate an <strong>Essentiality Score</strong> (mean log₂FC of 5 shRNAs):
+                        </p>
+                        <ul style={{ paddingLeft: 'var(--spacing-lg)', lineHeight: '1.8', fontSize: '0.95rem' }}>
+                            <li><strong>Dot Color (Essentiality Score):</strong>
+                                <ul style={{ paddingLeft: 'var(--spacing-md)', marginTop: 'var(--spacing-xs)' }}>
+                                    <li><span style={{ color: '#2563eb', fontWeight: 'bold' }}>Blue (Negative)</span> – Depleted (Score ≤ -0.5 typically indicates essentiality)</li>
+                                    <li><span style={{ color: '#dc2626', fontWeight: 'bold' }}>Red (Positive)</span> – Enriched</li>
+                                </ul>
+                            </li>
+                            <li><strong>Significance:</strong> Determined by score thresholds rather than p-value shading.</li>
+                        </ul>
+                    </div>
                 </div>
 
                 {/* CDCscreen Score Explanation Section (Li et al.) */}
