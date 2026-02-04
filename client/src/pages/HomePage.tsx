@@ -126,12 +126,10 @@ export default function HomePage() {
                         </p>
                         <ul style={{ paddingLeft: 'var(--spacing-lg)', lineHeight: '1.8', fontSize: '0.95rem' }}>
                             <li><strong>Dot Color (Log₂ Fold Change):</strong>
-                                <span style={{ fontSize: '0.9rem', color: 'var(--color-text-secondary)', display: 'block', marginBottom: 'var(--spacing-xs)' }}>
-                                    (Individual shRNA log₂FC aggregated by RRA algorithm via MAGeCK)
-                                </span>
                                 <ul style={{ paddingLeft: 'var(--spacing-md)', marginTop: 'var(--spacing-xs)' }}>
                                     <li><span style={{ color: '#2563eb', fontWeight: 'bold' }}>Blue</span> – Depleted</li>
                                     <li><span style={{ color: '#dc2626', fontWeight: 'bold' }}>Red</span> – Enriched</li>
+                                    <li>Individual shRNA log₂FC aggregated by RRA algorithm via MAGeCK</li>
                                 </ul>
                             </li>
                             <li><strong>Background Color (P-value):</strong>
@@ -146,7 +144,7 @@ export default function HomePage() {
 
                     <div>
                         <h4 style={{ fontSize: '1rem', color: 'var(--color-text)', marginBottom: 'var(--spacing-xs)' }}>
-                            For <strong>Liu et al.</strong> (PoolQ analysis)
+                            For <strong>Liu et al.</strong> (PoolQ Analysis)
                         </h4>
                         <p style={{ lineHeight: '1.8', marginBottom: 'var(--spacing-sm)', fontSize: '0.95rem' }}>
                             <strong>Essentiality Score</strong> = mean log₂FC of 5 shRNAs per circRNA
@@ -163,10 +161,10 @@ export default function HomePage() {
                                     <li><span style={{ color: '#dc2626', fontWeight: 'bold' }}>Red (Positive)</span> – Enriched</li>
                                 </ul>
                             </li>
-                            <li style={{ marginTop: 'var(--spacing-xs)' }}><strong>Significance considerations:</strong>
+                            <li style={{ marginTop: 'var(--spacing-xs)' }}><strong>Significance:</strong>
                                 <ul style={{ paddingLeft: 'var(--spacing-md)', marginTop: 'var(--spacing-xs)' }}>
-                                    <li><strong>Core essential:</strong> Threshold-based (score + consistency across cell lines)</li>
-                                    <li><strong>Context-specific:</strong> P-value from t-test (P ≤ 0.15 used as cutoff)</li>
+                                    <li><strong>Core essential:</strong> Threshold-based (score + consistency across ≥17 of 18 cell lines for primary; ≥7 of 11 for secondary)</li>
+                                    <li><strong>Context-specific (WNT, KRAS, BRAF):</strong> P-value from t-test (P ≤ 0.15 used as cutoff)</li>
                                 </ul>
                             </li>
                         </ul>
