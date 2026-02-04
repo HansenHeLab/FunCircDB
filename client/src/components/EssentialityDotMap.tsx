@@ -322,7 +322,7 @@ export function EssentialityDotMap({
                     <div><strong>{tooltip.content.rowLabel}</strong></div>
                     <div>Cell line: {tooltip.content.colLabel}</div>
                     <div>log₂FC: {tooltip.content.value.toFixed(3)}</div>
-                    <div>p-value: {tooltip.content.pvalue.toFixed(4)}</div>
+                    <div>p-value: {showPValueLegend ? tooltip.content.pvalue.toFixed(4) : 'None (threshold based)'}</div>
                 </div>
             )}
         </div>
