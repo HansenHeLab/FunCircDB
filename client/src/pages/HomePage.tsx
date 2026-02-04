@@ -146,16 +146,26 @@ export default function HomePage() {
                             For <strong>Liu et al.</strong> (PoolQ analysis)
                         </h4>
                         <p style={{ lineHeight: '1.8', marginBottom: 'var(--spacing-sm)', fontSize: '0.95rem' }}>
-                            This study uses <strong>PoolQ</strong> analysis to calculate an <strong>Essentiality Score</strong> (mean log₂FC of 5 shRNAs):
+                            <strong>Essentiality Score</strong> = mean log₂FC of 5 shRNAs per circRNA
                         </p>
                         <ul style={{ paddingLeft: 'var(--spacing-lg)', lineHeight: '1.8', fontSize: '0.95rem' }}>
                             <li><strong>Dot Color (Essentiality Score):</strong>
                                 <ul style={{ paddingLeft: 'var(--spacing-md)', marginTop: 'var(--spacing-xs)' }}>
-                                    <li><span style={{ color: '#2563eb', fontWeight: 'bold' }}>Blue (Negative)</span> – Depleted (Score ≤ -0.5 typically indicates essentiality)</li>
-                                    <li><span style={{ color: '#dc2626', fontWeight: 'bold' }}>Red (Positive)</span> – Enriched</li>
+                                    <li><span style={{ color: '#2563eb', fontWeight: 'bold' }}>Blue (Negative)</span> – Depleted
+                                        <ul style={{ paddingLeft: 'var(--spacing-md)', fontSize: '0.9rem', color: 'var(--color-text-secondary)' }}>
+                                            <li>Primary screen: ≤ −1 = core essential</li>
+                                            <li>Secondary screen: ≤ −0.5 = essential</li>
+                                        </ul>
+                                    </li>
+                                    <li><span style={{ color: '#dc2626', fontWeight: 'bold' }}>Red (Positive)</span> – Enriched; circRNA knockdown promotes proliferation</li>
                                 </ul>
                             </li>
-                            <li><strong>Significance:</strong> Determined by score thresholds rather than p-value shading.</li>
+                            <li style={{ marginTop: 'var(--spacing-xs)' }}><strong>Significance considerations:</strong>
+                                <ul style={{ paddingLeft: 'var(--spacing-md)', marginTop: 'var(--spacing-xs)' }}>
+                                    <li><strong>Core essential:</strong> Threshold-based (score + consistency across cell lines)</li>
+                                    <li><strong>Context-specific:</strong> P-value from t-test (P ≤ 0.15 used as cutoff)</li>
+                                </ul>
+                            </li>
                         </ul>
                     </div>
                 </div>
