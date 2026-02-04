@@ -1,4 +1,4 @@
-import { useMemo, useRef, useCallback } from 'react';
+import React, { useMemo, useRef, useCallback } from 'react';
 
 /**
  * ClinicalExpressionPlot - Box plot visualization for clinical expression data
@@ -42,13 +42,29 @@ function calculateBoxStats(values: number[]) {
     // Outliers
     const outliers = sorted.filter(v => v < lowerWhisker || v > upperWhisker);
 
-    return { q1, median, q3, lowerWhisker, upperWhisker, outliers, min: sorted[0], max: sorted[n - 1] };
+    return { q1, median, q3, lowerWhisker, upperWhisker, outliers, min: sorted[0], max: sorted[n - 1], n, mean: values.reduce((a, b) => a + b, 0) / n };
 }
 
 const DEFAULT_COLORS = [
     '#4299e1', '#48bb78', '#ed8936', '#f56565', '#9f7aea',
     '#38b2ac', '#ed64a6', '#667eea', '#fc8181', '#68d391',
 ];
+
+interface TooltipState {
+    visible: boolean;
+    x: number;
+    y: number;
+    content: {
+        group: string;
+        n: number;
+        mean: number;
+        median: number;
+        q1: number;
+        q3: number;
+        min: number;
+        max: number;
+    } | null;
+}
 
 export function ClinicalExpressionPlot({
     data,
@@ -65,6 +81,14 @@ export function ClinicalExpressionPlot({
             values: d.values,
         }));
     }, [data]);
+
+    // Tooltip state
+    const [tooltip, setTooltip] = React.useState<TooltipState>({
+        visible: false,
+        x: 0,
+        y: 0,
+        content: null,
+    });
 
     // Layout
     const margin = { top: 60, right: 40, bottom: 90, left: 80 };
@@ -114,7 +138,7 @@ export function ClinicalExpressionPlot({
     }, [title]);
 
     return (
-        <div className="viz-container">
+        <div className="viz-container" style={{ position: 'relative' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-sm)' }}>
                 <h3 className="viz-title" style={{ margin: 0 }}>{title || 'Clinical Expression'}</h3>
                 <button
@@ -212,12 +236,43 @@ export function ClinicalExpressionPlot({
                 {/* Box plots */}
                 {boxStats.map((item, i) => {
                     if (!item.stats) return null;
-                    const { q1, median, q3, lowerWhisker, upperWhisker, outliers } = item.stats;
+                    const { q1, median, q3, lowerWhisker, upperWhisker, outliers, n, mean, min, max } = item.stats;
                     const x = xPositions[i];
                     const color = colorScheme[i % colorScheme.length];
 
                     return (
-                        <g key={item.group}>
+                        <g
+                            key={item.group}
+                            onMouseEnter={(e) => {
+                                const rect = e.currentTarget.getBoundingClientRect();
+                                setTooltip({
+                                    visible: true,
+                                    x: rect.left + rect.width / 2,
+                                    y: rect.top,
+                                    content: {
+                                        group: item.group,
+                                        n,
+                                        mean,
+                                        median,
+                                        q1,
+                                        q3,
+                                        min,
+                                        max
+                                    }
+                                });
+                            }}
+                            onMouseLeave={() => setTooltip(prev => ({ ...prev, visible: false }))}
+                            style={{ cursor: 'pointer' }}
+                        >
+                            {/* Transparent hit target for easier hovering */}
+                            <rect
+                                x={x - boxWidth / 2 - 5}
+                                y={margin.top}
+                                width={boxWidth + 10}
+                                height={plotHeight}
+                                fill="transparent"
+                            />
+
                             {/* Whisker line */}
                             <line
                                 x1={x}
@@ -324,6 +379,39 @@ export function ClinicalExpressionPlot({
                     </text>
                 )}
             </svg>
+
+            {/* Tooltip */}
+            {tooltip.visible && tooltip.content && (
+                <div
+                    style={{
+                        position: 'fixed',
+                        left: tooltip.x,
+                        top: tooltip.y,
+                        transform: 'translate(-50%, -100%)',
+                        background: 'rgba(0, 0, 0, 0.8)',
+                        color: 'white',
+                        padding: '8px 12px',
+                        borderRadius: '4px',
+                        fontSize: '12px',
+                        pointerEvents: 'none',
+                        zIndex: 1000,
+                        whiteSpace: 'nowrap',
+                        marginTop: '-10px',
+                        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                    }}
+                >
+                    <div style={{ fontWeight: 'bold', marginBottom: '4px', borderBottom: '1px solid rgba(255,255,255,0.3)', paddingBottom: '2px' }}>
+                        {tooltip.content.group}
+                    </div>
+                    <div>Count (n): {tooltip.content.n}</div>
+                    <div>Mean: {tooltip.content.mean.toFixed(3)}</div>
+                    <div>Median: {tooltip.content.median.toFixed(3)}</div>
+                    <div>IQR: {(tooltip.content.q3 - tooltip.content.q1).toFixed(3)}</div>
+                    <div style={{ color: '#aaa', fontSize: '10px', marginTop: '2px' }}>
+                        Range: {tooltip.content.min.toFixed(2)} - {tooltip.content.max.toFixed(2)}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

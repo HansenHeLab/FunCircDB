@@ -34,18 +34,72 @@ export default function ClinicalExpressionPage() {
         selectedClinicalCircRNA
     );
 
-    // Transform expression data for box plot
-    const boxPlotData = expressionData?.data
-        ? Array.isArray(expressionData.data)
-            ? expressionData.data.map((item: { cancerType?: string; subtype?: string; values: number[] }) => ({
-                group: item.cancerType || item.subtype || 'Unknown',
-                values: item.values,
-            }))
-            : [{ group: 'All Patients', values: (expressionData.data as { values: number[] }).values || [] }]
-        : [];
-
     // Get annotations from expression data
     const annotations = (expressionData as any)?.annotations || [];
+
+    // Transform expression data for box plot based on dataset type and selected row
+    const boxPlotData = (() => {
+        if (!expressionData?.rawData || selectedClinicalTableRowIndex === null || !annotations[selectedClinicalTableRowIndex]) {
+            return [];
+        }
+
+        const rawData = expressionData.rawData as any[];
+        const selectedIsoform = annotations[selectedClinicalTableRowIndex];
+        const selectedCircID = selectedIsoform.circID;
+
+        // Helper to check if a row matches the selected isoform
+        // We match primarily on circID logic if available
+        const isMatch = (row: any) => String(row.circID) === String(selectedCircID);
+
+        if (selectedClinicalDataset === 'breast-cohort') {
+            // Long format: Filter by circID, then group by Sample_Type
+            const filtered = rawData.filter(isMatch);
+            const byGroup: Record<string, number[]> = {};
+            filtered.forEach(row => {
+                const group = String(row.Sample_Type || row.cancer_type || row.Subtype || 'Unknown');
+                if (!byGroup[group]) byGroup[group] = [];
+                const val = Number(row.circRNA_rpkm || row.value || 0);
+                if (!isNaN(val)) byGroup[group].push(val);
+            });
+            return Object.entries(byGroup).map(([group, values]) => ({ group, values }));
+        }
+
+        if (selectedClinicalDataset === 'cpcg') {
+            // Wide format: Filter by circID (should be 1 row), extract patient columns
+            const matchedRow = rawData.find(isMatch);
+            if (!matchedRow) return [];
+
+            const annotationFields = ['circID', 'ENT', 'gene', 'Gene', 'flanking', 'type', 'numE', 'lengthE', 'index', 'name', 'strand', 'chr', 'id', 'ENS'];
+            const values: number[] = [];
+
+            Object.keys(matchedRow).forEach(key => {
+                // CPCG columns start with CPCG_ usually, or just non-annotation fields
+                if ((key.startsWith('CPCG_') || !annotationFields.includes(key)) && !isNaN(Number(matchedRow[key]))) {
+                    const val = Number(matchedRow[key]);
+                    values.push(val);
+                }
+            });
+            return [{ group: 'All Patients', values }];
+        }
+
+        if (selectedClinicalDataset === 'arul-et-al') {
+            // Long format: Filter by circID, group by cancerType
+            const filtered = rawData.filter(isMatch);
+            const byGroup: Record<string, number[]> = {};
+            filtered.forEach(row => {
+                const group = String(row.cancerType || 'Unknown');
+                if (!byGroup[group]) byGroup[group] = [];
+                const val = Number(row.circRNA_ncpm || row.value || 0);
+                if (!isNaN(val)) byGroup[group].push(val);
+            });
+            return Object.entries(byGroup).map(([group, values]) => ({ group, values }));
+        }
+
+        // Default / Fallback
+        const filtered = rawData.filter(isMatch);
+        const values = filtered.map(row => Number(row.value || 0)).filter(v => !isNaN(v));
+        return [{ group: 'All Samples', values }];
+    })();
 
     // Columns for table display - matches R Shiny exactly
     const getTableColumns = () => {
