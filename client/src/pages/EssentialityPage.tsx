@@ -265,70 +265,79 @@ export default function EssentialityPage() {
                             <DotMapSkeleton />
                         ) : essentialityData ? (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xl)' }}>
-                                {/* Filter and render pos rows (enriched) */}
-                                {(() => {
-                                    const posIndices = essentialityData.rowLabels
-                                        .map((label, i) => ({ label, i }))
-                                        .filter(({ label }) => label.includes('_pos'));
+                                {/* Liu et al. - Single Unified Map (No Pos/Neg Split) */}
+                                {(selectedStudy === 'liu-et-al' || !essentialityData.rowLabels.some(l => l.includes('_pos') || l.includes('_neg'))) ? (
+                                    <div className="card">
+                                        <h4 style={{ textAlign: 'center', marginBottom: 'var(--spacing-sm)', color: 'var(--color-primary)' }}>
+                                            {selectedStudy === 'liu-et-al' ? 'Liu et al. shRNA Screen Results' : 'Screen Results'}
+                                        </h4>
+                                        <EssentialityDotMap
+                                            title="Essentiality Score (log2FC)"
+                                            data={{
+                                                values: essentialityData.values,
+                                                pvalues: essentialityData.pvalues,
+                                            }}
+                                            rowLabels={essentialityData.rowLabels || []}
+                                            colLabels={essentialityData.colLabels || []}
+                                        />
+                                    </div>
+                                ) : (
+                                    /* Her et al. and Chen et al. - Split into Positive and Negative Maps */
+                                    <>
+                                        {/* Filter and render pos rows (enriched) */}
+                                        {(() => {
+                                            const posIndices = essentialityData.rowLabels
+                                                .map((label, i) => ({ label, i }))
+                                                .filter(({ label }) => label.includes('_pos'));
 
-                                    if (posIndices.length > 0) {
-                                        return (
-                                            <div>
-                                                <h4 style={{ textAlign: 'center', marginBottom: 'var(--spacing-sm)', color: 'var(--color-text)' }}>
-                                                    Positive Selection (Enriched)
-                                                </h4>
-                                                <EssentialityDotMap
-                                                    title="pos (enriched)"
-                                                    data={{
-                                                        values: posIndices.map(({ i }) => essentialityData.values[i]),
-                                                        pvalues: posIndices.map(({ i }) => essentialityData.pvalues[i]),
-                                                    }}
-                                                    rowLabels={posIndices.map(({ label }) => label.replace('_pos', ''))}
-                                                    colLabels={essentialityData.colLabels || []}
-                                                />
-                                            </div>
-                                        );
-                                    }
-                                    return null;
-                                })()}
+                                            if (posIndices.length > 0) {
+                                                return (
+                                                    <div>
+                                                        <h4 style={{ textAlign: 'center', marginBottom: 'var(--spacing-sm)', color: 'var(--color-text)' }}>
+                                                            Positive Selection (Enriched)
+                                                        </h4>
+                                                        <EssentialityDotMap
+                                                            title="pos (enriched)"
+                                                            data={{
+                                                                values: posIndices.map(({ i }) => essentialityData.values[i]),
+                                                                pvalues: posIndices.map(({ i }) => essentialityData.pvalues[i]),
+                                                            }}
+                                                            rowLabels={posIndices.map(({ label }) => label.replace('_pos', ''))}
+                                                            colLabels={essentialityData.colLabels || []}
+                                                        />
+                                                    </div>
+                                                );
+                                            }
+                                            return null;
+                                        })()}
 
-                                {/* Filter and render neg rows (depleted/essential) */}
-                                {(() => {
-                                    const negIndices = essentialityData.rowLabels
-                                        .map((label, i) => ({ label, i }))
-                                        .filter(({ label }) => label.includes('_neg'));
+                                        {/* Filter and render neg rows (depleted/essential) */}
+                                        {(() => {
+                                            const negIndices = essentialityData.rowLabels
+                                                .map((label, i) => ({ label, i }))
+                                                .filter(({ label }) => label.includes('_neg'));
 
-                                    if (negIndices.length > 0) {
-                                        return (
-                                            <div>
-                                                <h4 style={{ textAlign: 'center', marginBottom: 'var(--spacing-sm)', color: 'var(--color-text)' }}>
-                                                    Negative Selection (Depleted/Essential)
-                                                </h4>
-                                                <EssentialityDotMap
-                                                    title="neg (depleted)"
-                                                    data={{
-                                                        values: negIndices.map(({ i }) => essentialityData.values[i]),
-                                                        pvalues: negIndices.map(({ i }) => essentialityData.pvalues[i]),
-                                                    }}
-                                                    rowLabels={negIndices.map(({ label }) => label.replace('_neg', ''))}
-                                                    colLabels={essentialityData.colLabels || []}
-                                                />
-                                            </div>
-                                        );
-                                    }
-                                    return null;
-                                })()}
-
-                                {/* Fallback for Li et al. or data without pos/neg split */}
-                                {!essentialityData.rowLabels.some(l => l.includes('_pos') || l.includes('_neg')) && (
-                                    <EssentialityDotMap
-                                        data={{
-                                            values: essentialityData.values,
-                                            pvalues: essentialityData.pvalues,
-                                        }}
-                                        rowLabels={essentialityData.rowLabels || []}
-                                        colLabels={essentialityData.colLabels || []}
-                                    />
+                                            if (negIndices.length > 0) {
+                                                return (
+                                                    <div>
+                                                        <h4 style={{ textAlign: 'center', marginBottom: 'var(--spacing-sm)', color: 'var(--color-text)' }}>
+                                                            Negative Selection (Depleted/Essential)
+                                                        </h4>
+                                                        <EssentialityDotMap
+                                                            title="neg (depleted)"
+                                                            data={{
+                                                                values: negIndices.map(({ i }) => essentialityData.values[i]),
+                                                                pvalues: negIndices.map(({ i }) => essentialityData.pvalues[i]),
+                                                            }}
+                                                            rowLabels={negIndices.map(({ label }) => label.replace('_neg', ''))}
+                                                            colLabels={essentialityData.colLabels || []}
+                                                        />
+                                                    </div>
+                                                );
+                                            }
+                                            return null;
+                                        })()}
+                                    </>
                                 )}
 
                                 {/* Legend */}
