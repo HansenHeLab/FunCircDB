@@ -16,12 +16,46 @@ export interface EssentialityDotMapProps {
     title?: string;
     onCellClick?: (row: number, col: number, value: number, pvalue: number) => void;
     showPValueLegend?: boolean;
+	selectedStudy: string | null
 }
 
 // BoutrosLab dotmap color palette
 const COLOR_NEGATIVE = '#2563eb';  // Blue for negative log2FC
 const COLOR_POSITIVE = '#dc2626';  // Red for positive log2FC
 const COLOR_NEUTRAL = '#ffffff';   // White for zero
+
+const Legend = (selectedStudy: string | null) => {
+	return (
+        <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            gap: 'var(--spacing-xl)',
+            marginTop: 'var(--spacing-md)',
+            fontSize: '0.875rem'
+        }}>
+			<div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
+				<div style={{ width: 12, height: 12, borderRadius: '50%', background: '#dc2626' }}></div>
+				<span>Positive log₂FC</span>
+			</div>
+			<div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
+				<div style={{ width: 12, height: 12, borderRadius: '50%', background: '#2563eb' }}></div>
+				<span>Negative log₂FC</span>
+			</div>
+			{selectedStudy !== 'liu-et-al' && (
+				<>
+					<div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
+						<div style={{ width: 12, height: 12, border: '1px solid #ddd', background: '#000' }}></div>
+						<span>Significant (p &lt; 0.05)</span>
+					</div>
+					<div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
+						<div style={{ width: 12, height: 12, border: '1px solid #ddd', background: '#fff' }}></div>
+						<span>Not Significant</span>
+					</div>
+				</>
+			)}
+        </div>
+	)
+}
 
 // P-value color scale (black = significant, white = not significant)
 function getPValueColor(pval: number): string {
@@ -72,6 +106,7 @@ export function EssentialityDotMap({
     title,
     onCellClick,
     showPValueLegend = true,
+	selectedStudy,
 }: EssentialityDotMapProps) {
     const svgRef = useRef<SVGSVGElement>(null);
     const [tooltip, setTooltip] = useState<TooltipState>({
@@ -325,6 +360,7 @@ export function EssentialityDotMap({
                     <div>p-value: {showPValueLegend ? tooltip.content.pvalue.toFixed(4) : 'None (threshold based)'}</div>
                 </div>
             )}
+			{Legend(selectedStudy)}
         </div>
     );
 }

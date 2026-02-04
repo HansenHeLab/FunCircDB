@@ -280,6 +280,7 @@ export default function EssentialityPage() {
                                             rowLabels={essentialityData.rowLabels || []}
                                             colLabels={essentialityData.colLabels || []}
                                             showPValueLegend={false}
+											selectedStudy={selectedStudy}
                                         />
                                     </div>
                                 ) : (
@@ -305,6 +306,7 @@ export default function EssentialityPage() {
                                                             }}
                                                             rowLabels={posIndices.map(({ label }) => label.replace('_pos', ''))}
                                                             colLabels={essentialityData.colLabels || []}
+															selectedStudy={selectedStudy}
                                                         />
                                                     </div>
                                                 );
@@ -332,6 +334,7 @@ export default function EssentialityPage() {
                                                             }}
                                                             rowLabels={negIndices.map(({ label }) => label.replace('_neg', ''))}
                                                             colLabels={essentialityData.colLabels || []}
+															selectedStudy={selectedStudy}
                                                         />
                                                     </div>
                                                 );
@@ -339,37 +342,7 @@ export default function EssentialityPage() {
                                             return null;
                                         })()}
                                     </>
-                                )}
-
-                                {/* Legend */}
-                                <div style={{
-                                    display: 'flex',
-                                    justifyContent: 'center',
-                                    gap: 'var(--spacing-xl)',
-                                    marginTop: 'var(--spacing-md)',
-                                    fontSize: '0.875rem'
-                                }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
-                                        <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#dc2626' }}></div>
-                                        <span>Positive log₂FC</span>
-                                    </div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
-                                        <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#2563eb' }}></div>
-                                        <span>Negative log₂FC</span>
-                                    </div>
-                                    {selectedStudy !== 'liu-et-al' && (
-                                        <>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
-                                                <div style={{ width: 12, height: 12, border: '1px solid #ddd', background: '#000' }}></div>
-                                                <span>Significant (p &lt; 0.05)</span>
-                                            </div>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
-                                                <div style={{ width: 12, height: 12, border: '1px solid #ddd', background: '#fff' }}></div>
-                                                <span>Not Significant</span>
-                                            </div>
-                                        </>
-                                    )}
-                                </div>
+                                )}                                
                             </div>
                         ) : (
                             <div className="viz-container">
