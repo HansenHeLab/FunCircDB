@@ -139,6 +139,45 @@ export default function HomePage() {
                         <strong>Negative Selection (neg):</strong> Identifies circRNAs whose knockdown causes cells to die/grow slower (essential for viability, potential oncogenes).
                     </p>
                 </div>
+
+                {/* CDCscreen Score Explanation Section (Li et al.) */}
+                <div style={{
+                    marginTop: 'var(--spacing-lg)',
+                    padding: 'var(--spacing-md)',
+                    background: 'var(--color-background)',
+                    borderRadius: 'var(--radius-md)',
+                    borderLeft: '4px solid var(--color-warning)'
+                }}>
+                    <h3 style={{ marginBottom: 'var(--spacing-sm)', color: 'var(--color-primary)' }}>Understanding CDCscreen Score (Li et al.)</h3>
+                    <p style={{ lineHeight: '1.8', marginBottom: 'var(--spacing-md)' }}>
+                        For the <strong>Li et al.</strong> study, circRNA function is evaluated using the <strong>CDCscreen score</strong> (Cas13d-mediated CircRNA Screen). This score combines statistical significance with effect magnitude to identify circRNAs important for cell proliferation:
+                    </p>
+                    <div style={{
+                        background: 'var(--color-surface)',
+                        padding: 'var(--spacing-md)',
+                        borderRadius: 'var(--radius-md)',
+                        fontFamily: 'monospace',
+                        textAlign: 'center',
+                        marginBottom: 'var(--spacing-md)'
+                    }}>
+                        <strong>CDCscreen score = scale[−log₁₀(P value)] + scale[|log₂(Mean of gRNA FC)|]</strong>
+                    </div>
+                    <ul style={{ paddingLeft: 'var(--spacing-lg)', lineHeight: '2' }}>
+                        <li><strong>P-value:</strong> Statistical significance from MAGeCK permutation test of negatively-selected gRNAs (D1 vs D30)</li>
+                        <li><strong>Mean FC:</strong> Mean fold change of negatively-selected gRNAs targeting the same circRNA between D30 and D1</li>
+                        <li><strong>scale[]:</strong> Z-score normalization applied to both components</li>
+                        <li><strong>Candidate Selection Criteria:</strong>
+                            <ul style={{ paddingLeft: 'var(--spacing-md)', lineHeight: '1.8', marginTop: 'var(--spacing-xs)' }}>
+                                <li><strong>CDCscreen score ≥ 2</strong></li>
+                                <li><strong>≥ 2 negatively-selected gRNAs with FC ≤ 0.667</strong></li>
+                                <li>circRNA must be expressed (FPBcirc {'>'} 0) in the cell line</li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <p style={{ lineHeight: '1.8', marginTop: 'var(--spacing-md)', fontSize: '0.9rem', color: 'var(--color-text-secondary)' }}>
+                        CircRNAs meeting these criteria have positive effects on cell proliferation—their knockdown causes cells to die or grow slower (essential for viability). The score threshold of 2 corresponds to an empirical FDR {'<'} 0.1.
+                    </p>
+                </div>
             </div>
 
             {/* Citations Section */}
