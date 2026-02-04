@@ -399,8 +399,8 @@ studiesRouter.get('/:id/essentiality', async (req, res) => {
             return res.json(response);
         }
 
-        // Li et al. - tissue-specific cell lines, no neg/pos split, no linear (only circRNA)
-        if (studyId === 'li-et-al' && tissueType) {
+        // Liu et al. - tissue-specific cell lines (shRNA dotmap), no neg/pos split, no linear (only circRNA)
+        if (studyId === 'liu-et-al' && tissueType) {
             const tissueKey = String(tissueType).toLowerCase();
             const tissueData = loadJSON<Record<string, unknown>[]>(`${studyId}/${tissueKey}/data.json`);
 
@@ -427,10 +427,10 @@ studiesRouter.get('/:id/essentiality', async (req, res) => {
             const gene = matchingRow.gene || matchingRow.Gene?.toString().split('-')[0] || '';
             const index = matchingRow.index || '';
 
-            // Build single row (circRNA only, no linear for Li et al.)
+            // Build single row (circRNA only, no linear for Liu et al. shRNA)
             const rowLabel = `circ${gene}(${index})`;
             const values: number[][] = [cellLines.map(cl => Number(matchingRow[cl]) || 0)];
-            // Li et al. data doesn't have p-values in the direct format, set all to 0.5 (neutral)
+            // Liu et al. data doesn't have p-values in the direct format, set all to 0.5 (neutral)
             const pvalues: number[][] = [cellLines.map(() => 0.5)];
 
             const response: EssentialityData = {
