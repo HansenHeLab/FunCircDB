@@ -272,7 +272,7 @@ export default function EssentialityPage() {
                                             {selectedStudy === 'liu-et-al' ? 'Liu et al. shRNA Screen Results' : 'Screen Results'}
                                         </h4>
                                         <EssentialityDotMap
-                                            title="Essentiality Score (log2FC)"
+                                            title="Essentiality Score (log₂FC)"
                                             data={{
                                                 values: essentialityData.values,
                                                 pvalues: essentialityData.pvalues,
