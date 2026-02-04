@@ -209,8 +209,120 @@ studiesRouter.get('/:id/essentiality', async (req, res) => {
     }
 
     try {
-        // Her et al. and Chen et al. use screen_data.json format
-        if (studyId === 'her-et-al' || studyId === 'chen-et-al') {
+        // Chen et al. uses separate circ_data.json and linear_data.json files
+        if (studyId === 'chen-et-al') {
+            const circData = loadJSON<Record<string, unknown>[]>(`${studyId}/circ_data.json`);
+            const linearData = loadJSON<Record<string, unknown>[]>(`${studyId}/linear_data.json`);
+            const annotations = loadJSON<Record<string, unknown>[]>(`${studyId}/annotations.json`);
+
+            if (!circData) {
+                return res.json({ values: [], pvalues: [], rowLabels: [], colLabels: [] });
+            }
+
+            // Find the circRNA in annotations using screenID (the ID that links to circ_data)
+            const circInfo = annotations?.find(a =>
+                String(a.screenID) === circRNAId ||
+                String(a.X) === circRNAId ||
+                String(a.id) === circRNAId
+            );
+
+            if (!circInfo) {
+                return res.json({ values: [], pvalues: [], rowLabels: [], colLabels: [] });
+            }
+
+            const gene = String(circInfo.gene || '');
+            const index = String(circInfo.index || '');
+            const screenID = String(circInfo.screenID || circRNAId);
+            const tp = String(timepoint || 'T8vsT0');
+
+            // Get unique cell lines from the data (PC3, 22Rv1, V16A, LnCaP)
+            const cellLines = [...new Set(circData
+                .filter(row => String(row.id) === screenID && String(row.timepoint) === tp)
+                .map(row => String(row.cell_line))
+            )].sort();
+
+            // If no data for this screenID, try matching by gene
+            let circMatches = circData.filter(row =>
+                String(row.id) === screenID && String(row.timepoint) === tp
+            );
+
+            if (circMatches.length === 0) {
+                // Fallback: match by gene name
+                circMatches = circData.filter(row =>
+                    String(row.gene) === gene && String(row.timepoint) === tp
+                );
+                if (circMatches.length > 0) {
+                    // Get unique cell lines from matched data
+                    const matchedCellLines = [...new Set(circMatches.map(row => String(row.cell_line)))].sort();
+                    cellLines.length = 0;
+                    cellLines.push(...matchedCellLines);
+                }
+            }
+
+            // Get matching linear data (by gene and timepoint)
+            const linearMatches = (linearData || []).filter(row =>
+                String(row.gene) === gene && String(row.timepoint) === tp
+            );
+
+            // Create row labels (circRNA neg/pos and linear neg/pos)
+            const indexStr = index.split(',').length <= 3
+                ? index
+                : `${Math.min(...index.split(',').map(Number))}-${Math.max(...index.split(',').map(Number))}`;
+
+            const rowLabels = [
+                `circ${gene}(${indexStr})_neg`,
+                `circ${gene}(${indexStr})_pos`,
+                `${gene}_neg`,
+                `${gene}_pos`
+            ];
+
+            // Initialize matrices
+            const values: number[][] = rowLabels.map(() => cellLines.map(() => 0));
+            const pvalues: number[][] = rowLabels.map(() => cellLines.map(() => 1));
+
+            // Fill circRNA data (rows 0 and 1)
+            circMatches.forEach(row => {
+                const cellLine = String(row.cell_line);
+                const colIdx = cellLines.indexOf(cellLine);
+                if (colIdx === -1) return;
+
+                // neg values (row 0)
+                values[0][colIdx] = Number(row['neg.lfc']) || 0;
+                pvalues[0][colIdx] = Number(row['neg.p.value']) || 1;
+
+                // pos values (row 1)
+                values[1][colIdx] = Number(row['pos.lfc']) || 0;
+                pvalues[1][colIdx] = Number(row['pos.p.value']) || 1;
+            });
+
+            // Fill linear data (rows 2 and 3)
+            linearMatches.forEach(row => {
+                const cellLine = String(row.cell_line);
+                const colIdx = cellLines.indexOf(cellLine);
+                if (colIdx === -1) return;
+
+                // neg values (row 2)
+                values[2][colIdx] = Number(row['neg.lfc']) || 0;
+                pvalues[2][colIdx] = Number(row['neg.p.value']) || 1;
+
+                // pos values (row 3)
+                values[3][colIdx] = Number(row['pos.lfc']) || 0;
+                pvalues[3][colIdx] = Number(row['pos.p.value']) || 1;
+            });
+
+            const response: EssentialityData = {
+                values,
+                pvalues,
+                rowLabels,
+                colLabels: cellLines,
+            };
+
+            setCache(cacheKey, response);
+            return res.json(response);
+        }
+
+        // Her et al. uses screen_data.json format
+        if (studyId === 'her-et-al') {
             const screenData = loadJSON<Record<string, unknown>[]>(`${studyId}/screen_data.json`);
             const annotations = loadJSON<Record<string, unknown>[]>(`${studyId}/annotations.json`);
 
