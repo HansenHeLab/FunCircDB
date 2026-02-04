@@ -1,8 +1,11 @@
 # FunCirc - Functional Circular RNA Database
 
-A modern web application for querying circRNA essentiality and clinical expression data from multiple studies. This is a **React + Node.js** rebuild of the original [R Shiny FunCirc application](https://github.com/HansenHeLab/FunCirc/tree/main).
+A web application for querying circRNA essentiality and clinical expression data from multiple studies. 
 
-![FunCirc](client/public/Picture2.png)
+<!-- This is a **React + Node.js** rebuild of the original [R Shiny FunCirc application](https://github.com/HansenHeLab/FunCirc/tree/main). -->
+
+<!--![FunCirc](client/public/Picture2.png) -->
+
 
 ## Overview
 
@@ -99,7 +102,10 @@ db_react/
    │   ├── screen_data.json
    │   └── genes.json
    ├── chen-et-al/
-   │   └── ...
+   │   ├── annotations.json
+   │   ├── circ_data.json
+   │   ├── genes.json
+   │   └── linear_data.json
    ├── liu-et-al/
    │   ├── ht29/
    │   ├── 293ft/
@@ -110,9 +116,11 @@ db_react/
    │   ├── brain/
    │   └── skin/
    └── clinical/
+       ├── split/
        ├── arul-et-al.json
        ├── cpcg.json
        └── breast-cohort.json
+   ├── gene-search-index.json
    ```
 
 ## Running the Application
