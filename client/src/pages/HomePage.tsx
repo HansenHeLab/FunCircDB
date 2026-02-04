@@ -126,6 +126,9 @@ export default function HomePage() {
                         </p>
                         <ul style={{ paddingLeft: 'var(--spacing-lg)', lineHeight: '1.8', fontSize: '0.95rem' }}>
                             <li><strong>Dot Color (Log₂ Fold Change):</strong>
+                                <span style={{ fontSize: '0.9rem', color: 'var(--color-text-secondary)', display: 'block', marginBottom: 'var(--spacing-xs)' }}>
+                                    (Individual shRNA log₂FC aggregated by RRA algorithm via MAGeCK)
+                                </span>
                                 <ul style={{ paddingLeft: 'var(--spacing-md)', marginTop: 'var(--spacing-xs)' }}>
                                     <li><span style={{ color: '#2563eb', fontWeight: 'bold' }}>Blue</span> – Depleted</li>
                                     <li><span style={{ color: '#dc2626', fontWeight: 'bold' }}>Red</span> – Enriched</li>
@@ -157,7 +160,7 @@ export default function HomePage() {
                                             <li>Secondary screen: ≤ −0.5 = essential</li>
                                         </ul>
                                     </li>
-                                    <li><span style={{ color: '#dc2626', fontWeight: 'bold' }}>Red (Positive)</span> – Enriched; circRNA knockdown promotes proliferation</li>
+                                    <li><span style={{ color: '#dc2626', fontWeight: 'bold' }}>Red (Positive)</span> – Enriched</li>
                                 </ul>
                             </li>
                             <li style={{ marginTop: 'var(--spacing-xs)' }}><strong>Significance considerations:</strong>
