@@ -129,13 +129,14 @@ export default function HomePage() {
                                 <ul style={{ paddingLeft: 'var(--spacing-md)', marginTop: 'var(--spacing-xs)' }}>
                                     <li><span style={{ color: '#2563eb', fontWeight: 'bold' }}>Blue</span> – Depleted</li>
                                     <li><span style={{ color: '#dc2626', fontWeight: 'bold' }}>Red</span> – Enriched</li>
-                                    <li>Individual shRNA log₂FC aggregated by RRA algorithm via MAGeCK</li>
+                                    <li>Represents the median (or robust estimate) log₂FC of shRNAs targeting each circRNA, as calculated by MAGeCK</li>
                                 </ul>
                             </li>
                             <li><strong>Background Color (P-value):</strong>
                                 <ul style={{ paddingLeft: 'var(--spacing-md)', marginTop: 'var(--spacing-xs)' }}>
                                     <li><strong>Black</strong> – Statistically significant (p &lt; 0.05)</li>
                                     <li><strong>White</strong> – Not significant</li>
+                                    <li>RRA p-value testing whether the circRNA's shRNAs rank higher (more depleted/enriched) than expected by chance</li>
                                 </ul>
                             </li>
                             <li><strong>Pos vs Neg:</strong> Separate maps depending on whether the circRNA is selected for (enriched) or against (depleted).</li>
