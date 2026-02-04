@@ -1,21 +1,18 @@
 import { Router } from 'express';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
 import type { StudyId, PaginatedResponse, GeneListResponse, EssentialityData, CircRNAAnnotation } from '../types.js';
+import axios from 'axios';
 
 export const studiesRouter = Router();
 
-// Data directory path - goes up from server/src/routes to /db_react/data
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DATA_DIR = path.join(__dirname, '../../../data');
+const DATA_DIR = "https://storage.googleapis.com/funcirc-db-data/";
 
 // JSON file loader with error handling
-function loadJSON<T>(filepath: string): T | null {
+async function loadJSON<T>(filepath: string): Promise<T | null> {
+    const fullPath = DATA_DIR + filepath;
+    console.log(fullPath);
     try {
-        const fullPath = path.join(DATA_DIR, filepath);
-        if (!fs.existsSync(fullPath)) return null;
-        return JSON.parse(fs.readFileSync(fullPath, 'utf8'));
+        const res = await axios.get(fullPath);
+        return res.data;
     } catch (err) {
         console.error(`Error loading ${filepath}:`, err);
         return null;
@@ -69,7 +66,7 @@ studiesRouter.get('/:id/genes', async (req, res) => {
         genePath = `${studyId}/${String(tissueType).toLowerCase()}/genes.json`;
     }
 
-    const jsonData = loadJSON<{ genes: string[] }>(genePath);
+    const jsonData = await loadJSON<{ genes: string[] }>(genePath);
     if (jsonData) {
         setCache(cacheKey, jsonData);
         return res.json(jsonData);
@@ -109,14 +106,14 @@ studiesRouter.get('/:id/annotations', async (req, res) => {
         annotationPath = `${studyId}/${String(tissueType).toLowerCase()}/data.json`;
     }
 
-    let jsonData = loadJSON<CircRNAAnnotation[]>(annotationPath);
+    let jsonData = await loadJSON<CircRNAAnnotation[]>(annotationPath);
 
     // Fallback: try annotations.json if data.json doesn't exist
     if (!jsonData && (cellLine || tissueType)) {
         const fallbackPath = cellLine
             ? `${studyId}/${String(cellLine).toLowerCase()}/annotations.json`
             : `${studyId}/${String(tissueType).toLowerCase()}/annotations.json`;
-        jsonData = loadJSON<CircRNAAnnotation[]>(fallbackPath);
+        jsonData = await loadJSON<CircRNAAnnotation[]>(fallbackPath);
     }
 
     if (jsonData) {
@@ -211,9 +208,9 @@ studiesRouter.get('/:id/essentiality', async (req, res) => {
     try {
         // Chen et al. uses separate circ_data.json and linear_data.json files
         if (studyId === 'chen-et-al') {
-            const circData = loadJSON<Record<string, unknown>[]>(`${studyId}/circ_data.json`);
-            const linearData = loadJSON<Record<string, unknown>[]>(`${studyId}/linear_data.json`);
-            const annotations = loadJSON<Record<string, unknown>[]>(`${studyId}/annotations.json`);
+            const circData = await loadJSON<Record<string, unknown>[]>(`${studyId}/circ_data.json`);
+            const linearData = await loadJSON<Record<string, unknown>[]>(`${studyId}/linear_data.json`);
+            const annotations = await loadJSON<Record<string, unknown>[]>(`${studyId}/annotations.json`);
 
             if (!circData) {
                 return res.json({ values: [], pvalues: [], rowLabels: [], colLabels: [] });
@@ -323,8 +320,8 @@ studiesRouter.get('/:id/essentiality', async (req, res) => {
 
         // Her et al. uses screen_data.json format
         if (studyId === 'her-et-al') {
-            const screenData = loadJSON<Record<string, unknown>[]>(`${studyId}/screen_data.json`);
-            const annotations = loadJSON<Record<string, unknown>[]>(`${studyId}/annotations.json`);
+            const screenData = await loadJSON<Record<string, unknown>[]>(`${studyId}/screen_data.json`);
+            const annotations = await loadJSON<Record<string, unknown>[]>(`${studyId}/annotations.json`);
 
             if (!screenData) {
                 return res.json({ values: [], pvalues: [], rowLabels: [], colLabels: [] });
@@ -402,7 +399,7 @@ studiesRouter.get('/:id/essentiality', async (req, res) => {
         // Liu et al. - tissue-specific cell lines (shRNA dotmap), no neg/pos split, no linear (only circRNA)
         if (studyId === 'liu-et-al' && tissueType) {
             const tissueKey = String(tissueType).toLowerCase();
-            const tissueData = loadJSON<Record<string, unknown>[]>(`${studyId}/${tissueKey}/data.json`);
+            const tissueData = await loadJSON<Record<string, unknown>[]>(`${studyId}/${tissueKey}/data.json`);
 
             if (!tissueData) {
                 return res.json({ values: [], pvalues: [], rowLabels: [], colLabels: [] });
