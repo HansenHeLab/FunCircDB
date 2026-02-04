@@ -162,10 +162,10 @@ npm run build
 ## Data Sources
 
 ### Screening Studies
-- **Her et al.** – Pan-cancer circRNA screen (7 cell lines)
-- **Liu et al.** – CasRx-based circRNA screen (HT29, 293FT, HeLa)
-- **Li et al.** – CRISPR-Cas13 screen (Colon, Pancreas, Brain, Skin)
-- **Chen et al.** – Prostate cancer circRNA screen
+- **Her et al.** – shRNA genome-wide circRNA screen (7 cancer cell lines)
+- **Liu et al.** – shRNA-based circRNA screen (18 cell lines, 4 tissue types)
+- **Li et al.** – CRISPR-RfxCas13d circRNA screen (Colon, Pancreas, Brain, Skin)
+- **Chen et al.** – shRNA circRNA screen in prostate cancer (LNCaP, V16A, 22Rv1, PC-3)
 
 ### Clinical Datasets
 - **Arul et al. (Vo et al.)** – The landscape of circular RNA in cancer

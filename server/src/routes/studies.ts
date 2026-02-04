@@ -42,10 +42,10 @@ function setCache(key: string, data: unknown): void {
 // GET /api/studies - List all available studies
 studiesRouter.get('/', (_, res) => {
     const studies = [
-        { id: 'her-et-al', name: 'Her et al.', description: 'circRNA screen in prostate cancer' },
-        { id: 'liu-et-al', name: 'Liu et al.', description: 'CasRx circRNA screen (CellLines: HT29, 293FT, HeLa)' },
-        { id: 'li-et-al', name: 'Li et al.', description: 'circRNA screen (Tissues: Colon, Pancreas, Brain, Skin)' },
-        { id: 'chen-et-al', name: 'Chen et al.', description: 'circRNA screen in prostate cancer' },
+        { id: 'her-et-al', name: 'Her et al.', description: 'shRNA genome-wide circRNA screen (7 cancer cell lines)' },
+        { id: 'liu-et-al', name: 'Liu et al.', description: 'shRNA-based circRNA screen (18 cell lines, 4 tissue types)' },
+        { id: 'li-et-al', name: 'Li et al.', description: 'CRISPR-RfxCas13d circRNA screen (Colon, Pancreas, Brain, Skin)' },
+        { id: 'chen-et-al', name: 'Chen et al.', description: 'shRNA circRNA screen in prostate cancer (LNCaP, V16A, 22Rv1, PC-3)' },
     ];
     res.json(studies);
 });

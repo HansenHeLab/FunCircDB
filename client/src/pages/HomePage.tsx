@@ -85,10 +85,10 @@ export default function HomePage() {
                 }}>
                     <h3 style={{ marginBottom: 'var(--spacing-sm)', color: 'var(--color-primary)' }}>Screening Studies</h3>
                     <ul style={{ paddingLeft: 'var(--spacing-lg)', lineHeight: '2' }}>
-                        <li><strong>Her et al.</strong> – Pan-cancer genome-wide circular RNA screen across 7 different cancer cell lines (current project)</li>
-                        <li><strong>Liu et al.</strong> – CasRx-based circRNA screen (HT29, 293FT, HeLa)</li>
-                        <li><strong>Li et al.</strong> – CRISPR-Cas13 multi-tissue screen (Colon, Pancreas, Brain, Skin)</li>
-                        <li><strong>Chen et al.</strong> – Localized prostate cancer circRNA screen</li>
+                        <li><strong>Her et al.</strong> – shRNA genome-wide circRNA screen across 7 cancer cell lines (current project)</li>
+                        <li><strong>Liu et al.</strong> – shRNA-based circRNA screen (18 cell lines, 4 tissue types)</li>
+                        <li><strong>Li et al.</strong> – CRISPR-RfxCas13d circRNA screen (Colon, Pancreas, Brain, Skin)</li>
+                        <li><strong>Chen et al.</strong> – shRNA circRNA screen in prostate cancer (LNCaP, V16A, 22Rv1, PC-3)</li>
                     </ul>
                 </div>
 
