@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import type { StudyId, PaginatedResponse, GeneListResponse, EssentialityData, CircRNAAnnotation } from '../types.js';
 import axios from 'axios';
+import dotenv from 'dotenv'; dotenv.config();
 
 export const studiesRouter = Router();
 
@@ -34,6 +35,47 @@ function getCached<T>(key: string): T | null {
 
 function setCache(key: string, data: unknown): void {
     cache.set(key, { data, timestamp: Date.now() });
+}
+
+async function preloadStudies(): Promise<void> {
+    const studies: StudyId[] = ['her-et-al', 'liu-et-al', 'li-et-al', 'chen-et-al'];
+
+    await Promise.allSettled(
+        studies.map(async (studyId) => {
+            // Genes
+            const genes = await loadJSON<{ genes: string[] }>(`${studyId}/genes.json`);
+            if (genes) setCache(`genes:${studyId}::`, genes);
+
+            // Annotations
+            const ann = await loadJSON<CircRNAAnnotation[]>(`${studyId}/annotations.json`);
+            if (ann) setCache(`annotations:${studyId}::`, { data: ann });
+
+            // Study-specific essentiality backing files
+            if (studyId === 'her-et-al') {
+                const screen = await loadJSON<Record<string, unknown>[]>(`${studyId}/screen_data.json`);
+                if (screen) setCache(`her:screen_data`, screen);
+
+                const herAnn = await loadJSON<Record<string, unknown>[]>(`${studyId}/annotations.json`);
+                if (herAnn) setCache(`her:annotations`, herAnn);
+            }
+
+            if (studyId === 'chen-et-al') {
+                const circ = await loadJSON<Record<string, unknown>[]>(`${studyId}/circ_data.json`);
+                if (circ) setCache(`chen:circ_data`, circ);
+
+                const lin = await loadJSON<Record<string, unknown>[]>(`${studyId}/linear_data.json`);
+                if (lin) setCache(`chen:linear_data`, lin);
+
+                const chenAnn = await loadJSON<Record<string, unknown>[]>(`${studyId}/annotations.json`);
+                if (chenAnn) setCache(`chen:annotations`, chenAnn);
+            }
+        })
+    );
+    console.log('Cache preload complete!');
+}
+console.log(process.env.DEPLOYED)
+if (process.env.DEPLOYED) {
+	void preloadStudies().catch(err => console.error('preloading studies has failed, review logs:', err));
 }
 
 // GET /api/studies - List all available studies
@@ -208,9 +250,28 @@ studiesRouter.get('/:id/essentiality', async (req, res) => {
     try {
         // Chen et al. uses separate circ_data.json and linear_data.json files
         if (studyId === 'chen-et-al') {
-            const circData = await loadJSON<Record<string, unknown>[]>(`${studyId}/circ_data.json`);
-            const linearData = await loadJSON<Record<string, unknown>[]>(`${studyId}/linear_data.json`);
-            const annotations = await loadJSON<Record<string, unknown>[]>(`${studyId}/annotations.json`);
+			let circData = null;
+			let linearData = null;
+			let annotations = null;
+
+			// Ensures we don't preload data locally to to avoid egress costs
+			if (process.env.DEPLOYED) {
+				circData =
+					getCached<Record<string, unknown>[]>(`chen:circ_data`) ??
+					await loadJSON<Record<string, unknown>[]>(`${studyId}/circ_data.json`);
+
+				linearData =
+					getCached<Record<string, unknown>[]>(`chen:linear_data`) ??
+					await loadJSON<Record<string, unknown>[]>(`${studyId}/linear_data.json`);
+
+				annotations =
+					getCached<Record<string, unknown>[]>(`chen:annotations`) ??
+					await loadJSON<Record<string, unknown>[]>(`${studyId}/annotations.json`);
+			} else {
+				circData = await loadJSON<Record<string, unknown>[]>(`${studyId}/circ_data.json`);
+				linearData = await loadJSON<Record<string, unknown>[]>(`${studyId}/linear_data.json`);
+				annotations = await loadJSON<Record<string, unknown>[]>(`${studyId}/annotations.json`);			
+			}
 
             if (!circData) {
                 return res.json({ values: [], pvalues: [], rowLabels: [], colLabels: [] });
@@ -320,8 +381,22 @@ studiesRouter.get('/:id/essentiality', async (req, res) => {
 
         // Her et al. uses screen_data.json format
         if (studyId === 'her-et-al') {
-            const screenData = await loadJSON<Record<string, unknown>[]>(`${studyId}/screen_data.json`);
-            const annotations = await loadJSON<Record<string, unknown>[]>(`${studyId}/annotations.json`);
+
+			let screenData = null;
+			let annotations = null;
+			// Ensures we don't preload data locally to to avoid egress costs
+			if (process.env.DEPLOYED) {
+				screenData =
+					getCached<Record<string, unknown>[]>(`her:screen_data`) ??
+					await loadJSON<Record<string, unknown>[]>(`${studyId}/screen_data.json`);
+				annotations =
+					getCached<Record<string, unknown>[]>(`her:annotations`) ??
+					await loadJSON<Record<string, unknown>[]>(`${studyId}/annotations.json`);
+			} else {
+				screenData = await loadJSON<Record<string, unknown>[]>(`${studyId}/screen_data.json`);
+            	annotations = await loadJSON<Record<string, unknown>[]>(`${studyId}/annotations.json`);
+			}
+
 
             if (!screenData) {
                 return res.json({ values: [], pvalues: [], rowLabels: [], colLabels: [] });
