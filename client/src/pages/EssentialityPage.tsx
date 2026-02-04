@@ -51,7 +51,7 @@ export default function EssentialityPage() {
         { cellLine: selectedCellLine, tissueType: selectedTissueType }
     );
 
-    // Fetch FULL study annotations (Only for Liu et al. plot background)
+    // Fetch FULL study annotations (Only for Li et al. CDCscreen plot background)
     const { data: fullStudyData, isLoading: fullDataLoading } = useStudyAnnotations(
         selectedStudy,
         { cellLine: selectedCellLine, tissueType: selectedTissueType }

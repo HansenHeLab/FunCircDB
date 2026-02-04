@@ -106,7 +106,7 @@ export function useCircRNAIsoforms(
     });
 }
 
-/** Fetch ALL annotations for a study (needed for global plots like Liu Screen) */
+/** Fetch ALL annotations for a study (needed for global plots like Li et al. CDCscreen) */
 export function useStudyAnnotations(
     studyId: StudyId,
     options?: { cellLine?: CellLine; tissueType?: TissueType }
@@ -118,8 +118,8 @@ export function useStudyAnnotations(
     return useQuery({
         queryKey: ['annotations', studyId, options?.cellLine, options?.tissueType],
         queryFn: () => fetchJson<{ data: CircRNAAnnotation[] }>(`${API_BASE}/studies/${studyId}/annotations?${params}`),
-        // Enable only for Liu et al. when cellLine is selected
-        enabled: !!studyId && studyId === 'liu-et-al' && !!options?.cellLine,
+        // Enable only for Li et al. (CDCscreen) when cellLine is selected
+        enabled: !!studyId && studyId === 'li-et-al' && !!options?.cellLine,
         staleTime: 30 * 60 * 1000,
     });
 }
