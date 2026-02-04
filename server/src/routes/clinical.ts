@@ -115,6 +115,7 @@ clinicalRouter.get('/:id/expression', async (req, res) => {
             return true;
         }).map(row => ({
             circID: String(row.circID || row.id || ''),
+            id: String(row.id || ''),
             ENT: String(row.ENT || ''),
             gene: String(row.gene || ''),
             index: String(row.index || ''),
