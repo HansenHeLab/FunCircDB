@@ -234,7 +234,7 @@ export function EssentialityDotMap({
                                     y={topMargin + i * cellSize}
                                     width={cellSize}
                                     height={cellSize}
-                                    fill={getPValueColor(data.pvalues[i][j])}
+                                    fill={showPValueLegend ? getPValueColor(data.pvalues[i][j]) : '#ffffff'}
                                     stroke="var(--color-border)"
                                     strokeWidth="0.5"
                                 />
