@@ -9,8 +9,8 @@ const LiuScreenPlot = lazy(() => import('../components/LiuScreenPlot'));
 
 const STUDIES = [
     { id: 'her-et-al', name: 'Her et al.', hasTimepoint: true },
-    { id: 'liu-et-al', name: 'Liu et al.', hasCellLine: true },
-    { id: 'li-et-al', name: 'Li et al.', hasTissue: true },
+    { id: 'liu-et-al', name: 'Liu et al.', hasTissue: true },
+    { id: 'li-et-al', name: 'Li et al.', hasCellLine: true },
     { id: 'chen-et-al', name: 'Chen et al.', hasTimepoint: true },
 ];
 
@@ -66,12 +66,12 @@ export default function EssentialityPage() {
 
     // Study-specific column configuration - matches R Shiny exactly
     const getColumns = () => {
-        if (selectedStudy === 'liu-et-al') {
-            // R Shiny: c("ENT","gene", "flanking", "numE", "lengthE", "index", "name", "start", "end", "Rank", "CDCscreen score")
+        if (selectedStudy === 'li-et-al') {
+            // Li et al. uses CDCscreen: c("ENT","gene", "flanking", "numE", "lengthE", "index", "name", "start", "end", "Rank", "CDCscreen score")
             return ['ENT', 'gene', 'flanking', 'numE', 'lengthE', 'index', 'name', 'start', 'end', 'Rank', 'CDCscreen score'];
         }
-        if (selectedStudy === 'li-et-al') {
-            // R Shiny: c("circRNA_ID", "gene", "flanking", "numE", "lengthE", "index", "name", "start", "end")
+        if (selectedStudy === 'liu-et-al') {
+            // Liu et al. uses shRNA dotmap: c("circRNA_ID", "gene", "flanking", "numE", "lengthE", "index", "name", "start", "end")
             return ['circRNA_ID', 'gene', 'flanking', 'numE', 'lengthE', 'index', 'name', 'start', 'end'];
         }
         // Her et al. and Chen et al.: c("ENT","gene", "flanking", "numE", "lengthE", "index", "name", "start", "end")
@@ -245,7 +245,8 @@ export default function EssentialityPage() {
             {selectedTableRowIndex !== null && selectedCircRNAId && (
                 <Suspense fallback={<DotMapSkeleton />}>
                     {/* Conditionally Render Plot based on Study */}
-                    {selectedStudy === 'liu-et-al' ? (
+                    {/* Li et al. uses CRISPR-RfxCas13d CDCscreen methodology */}
+                    {selectedStudy === 'li-et-al' ? (
                         fullDataLoading ? (
                             <DotMapSkeleton />
                         ) : fullStudyData?.data ? (
@@ -257,7 +258,7 @@ export default function EssentialityPage() {
                                 }))}
                                 highlightGene={selectedCircRNA || undefined}
                             />
-                        ) : <div>No data for Liu Plot</div>
+                        ) : <div>No data for Li et al. CDCscreen Plot</div>
                     ) : (
                         /* Standard Dotmap for other studies - split into pos/neg */
                         essentialityLoading ? (
