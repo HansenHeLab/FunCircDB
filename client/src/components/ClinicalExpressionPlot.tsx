@@ -67,7 +67,7 @@ export function ClinicalExpressionPlot({
     }, [data]);
 
     // Layout
-    const margin = { top: 60, right: 40, bottom: 120, left: 80 };
+    const margin = { top: 60, right: 40, bottom: 90, left: 80 };
     const boxWidth = 60;
     const boxGap = 30;
     const chartWidth = Math.max(400, data.length * (boxWidth + boxGap) + margin.left + margin.right);
@@ -298,11 +298,11 @@ export function ClinicalExpressionPlot({
                             {/* Group label - pushed down */}
                             <text
                                 x={x}
-                                y={margin.top + plotHeight + 40}
+                                y={margin.top + plotHeight + 15}
                                 textAnchor="end"
                                 fontSize="11"
                                 fill="var(--color-text)"
-                                transform={`rotate(-45, ${x}, ${margin.top + plotHeight + 40})`}
+                                transform={`rotate(-45, ${x}, ${margin.top + plotHeight + 15})`}
                             >
                                 {item.group}
                             </text>
