@@ -207,7 +207,7 @@ export function EssentialityDotMap({
                 </button>
             </div>
 
-            <div style={{ overflowX: 'auto' }}>
+            <div style={{ overflowX: 'auto', display: 'flex', justifyContent: 'center'}}>
                 <svg
                     ref={svgRef}
                     width={svgWidth}
