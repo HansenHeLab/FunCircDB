@@ -338,12 +338,13 @@ studiesRouter.get('/:id/essentiality', async (req, res) => {
             // Get unique samples (cell lines)
             const samples = [...new Set(screenData.map(row => String(row.sample)))];
 
-            // Filter data for this circRNA (by id field which is sample_gene format)
-            // The ID format is like "22RV1_ADSL" so we need to find entries ending with the gene name
+            // Filter data for this circRNA and its linear counterpart
+            // CircRNA entries have id like "circ_73040" (matches circRNAId)
+            // Linear entries have id that is just the gene name (e.g., "N6AMT2")
             const geneStr = String(gene);
             const matchingRows = screenData.filter(row => {
                 const rowId = String(row.id || '');
-                return rowId.endsWith(`_${geneStr}`) || rowId === circRNAId;
+                return rowId === circRNAId || rowId === geneStr;
             });
 
             // Build the dotmap matrix
