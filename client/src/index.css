@@ -219,13 +219,13 @@ a:hover {
 
 /* Buttons */
 .btn {
-  display: inline-flex;
+  display: flex;
+  gap: 6px;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-xs);
   padding: var(--spacing-sm) var(--spacing-md);
   border-radius: var(--radius-md);
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   font-weight: 500;
   font-family: inherit;
   cursor: pointer;
