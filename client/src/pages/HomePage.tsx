@@ -188,7 +188,7 @@ export default function HomePage() {
             </div>
 
             {/* Citations Section */}
-            <div className="card" style={{ maxWidth: '900px', marginTop: 'var(--spacing-xl)' }}>
+            <div className="card" style={{ marginTop: 'var(--spacing-xl)' }}>
                 <h3 style={{ marginBottom: 'var(--spacing-md)', color: 'var(--color-primary)' }}>Citations</h3>
                 <p style={{ marginBottom: 'var(--spacing-md)', color: 'var(--color-text)', lineHeight: '1.6' }}>
                     This project utilizes datasets and methodologies from multiple studies. If you use FunCirc in your research, please consider citing the following sources:
