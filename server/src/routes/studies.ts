@@ -1,19 +1,23 @@
 import { Router } from 'express';
 import type { StudyId, PaginatedResponse, GeneListResponse, EssentialityData, CircRNAAnnotation } from '../types.js';
-import axios from 'axios';
 import dotenv from 'dotenv'; dotenv.config();
+import path from 'path';
+import { Storage } from '@google-cloud/storage';
 
 export const studiesRouter = Router();
 
-const DATA_DIR = "https://storage.googleapis.com/funcirc-db-data/";
+const BUCKET_NAME = process.env.GCS_BUCKET || '';
+
+const storage = new Storage({
+			keyFilename: path.join(process.cwd(), 'funcirc_key.json'),
+		});
 
 // JSON file loader with error handling
 async function loadJSON<T>(filepath: string): Promise<T | null> {
-    const fullPath = DATA_DIR + filepath;
-    console.log(fullPath);
     try {
-        const res = await axios.get(fullPath);
-        return res.data;
+        const file = storage.bucket(BUCKET_NAME).file(filepath);
+        const [buf] = await file.download();
+        return JSON.parse(buf.toString('utf8')) as T;
     } catch (err) {
         console.error(`Error loading ${filepath}:`, err);
         return null;
@@ -22,15 +26,10 @@ async function loadJSON<T>(filepath: string): Promise<T | null> {
 
 // In-memory cache (simple LRU could be added)
 const cache = new Map<string, { data: unknown; timestamp: number }>();
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
-function getCached<T>(key: string): T | null {
+function getCached<T>(key: string): T {
     const entry = cache.get(key);
-    if (entry && Date.now() - entry.timestamp < CACHE_TTL) {
-        return entry.data as T;
-    }
-    cache.delete(key);
-    return null;
+    return entry?.data as T;
 }
 
 function setCache(key: string, data: unknown): void {

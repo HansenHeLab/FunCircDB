@@ -1,21 +1,23 @@
 import { Router } from 'express';
-import fs from 'fs';
+import dotenv from 'dotenv'; dotenv.config();
 import path from 'path';
-import { fileURLToPath } from 'url';
+import { Storage } from '@google-cloud/storage';
 import type { ClinicalDatasetId } from '../types.js';
 
 export const clinicalRouter = Router();
 
-// Data directory path - goes up from server/src/routes to /db_react/data
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DATA_DIR = path.join(__dirname, '../../../data');
+const BUCKET_NAME = process.env.GCS_BUCKET || '';
+
+const storage = new Storage({
+			keyFilename: path.join(process.cwd(), 'funcirc_key.json'),
+		});
 
 // JSON file loader with error handling
-function loadJSON<T>(filepath: string): T | null {
+async function loadJSON<T>(filepath: string): Promise<T | null> {
     try {
-        const fullPath = path.join(DATA_DIR, filepath);
-        if (!fs.existsSync(fullPath)) return null;
-        return JSON.parse(fs.readFileSync(fullPath, 'utf8'));
+        const file = storage.bucket(BUCKET_NAME).file(filepath);
+        const [buf] = await file.download();
+        return JSON.parse(buf.toString('utf8')) as T;
     } catch (err) {
         console.error(`Error loading ${filepath}:`, err);
         return null;
@@ -37,6 +39,23 @@ function getCached<T>(key: string): T | null {
 
 function setCache(key: string, data: unknown): void {
     cache.set(key, { data, timestamp: Date.now() });
+}
+
+async function preloadClinical(): Promise<void> {
+    const datasets: ClinicalDatasetId[] = ['arul-et-al', 'cpcg', 'breast-cohort'];
+
+    await Promise.allSettled(
+        datasets.map(async (datasetId) => {
+            const genesPath = `clinical/${datasetId}-genes.json`;
+            const genesData = await loadJSON<{ genes: string[] }>(genesPath);
+            if (genesData) setCache(`clinical:genes:${datasetId}`, genesData);
+        })
+    );
+    console.log('Clinical cache preload complete!');
+}
+
+if (process.env.DEPLOYED) {
+	void preloadClinical().catch(err => console.error('preloading clinical has failed, review logs:', err));
 }
 
 // GET /api/clinical - List all clinical datasets
@@ -61,7 +80,7 @@ clinicalRouter.get('/:id/genes', async (req, res) => {
 
     // Load from pre-generated genes.json (created by convert_data.js)
     const genesPath = `clinical/${datasetId}-genes.json`;
-    const genesData = loadJSON<{ genes: string[] }>(genesPath);
+    const genesData = await loadJSON<{ genes: string[] }>(genesPath);
     if (genesData) {
         setCache(cacheKey, genesData);
         return res.json(genesData);
@@ -87,21 +106,17 @@ clinicalRouter.get('/:id/expression', async (req, res) => {
     // Check for "split" data first (optimized format)
     // Path: data/clinical/split/{datasetId}/{gene}.json
     const splitPath = `clinical/split/${datasetId}/${queryGene}.json`;
-    const splitData = loadJSON<Record<string, unknown>[]>(splitPath);
+
+    const splitCacheKey = `clinical:split:${datasetId}:${queryGene}`;
+    const cachedSplit = getCached<Record<string, unknown>[]>(splitCacheKey);
+    const splitData = cachedSplit ?? await loadJSON<Record<string, unknown>[]>(splitPath);
 
     let filteredData: Record<string, unknown>[] = [];
 
     if (splitData) {
+        if (!cachedSplit) setCache(splitCacheKey, splitData);
         // Fast path: Data already filtered by gene
         filteredData = splitData;
-    } else {
-        // Slow fallback: Try loading full dataset (Only works for small files, will fail for 1GB files)
-        // This is kept for backward compatibility with small un-split files
-        const fullPath = `clinical/${datasetId}.json`;
-        const fullData = loadJSON<Record<string, unknown>[]>(fullPath);
-        if (fullData && Array.isArray(fullData)) {
-            filteredData = fullData.filter(row => row.gene === queryGene);
-        }
     }
 
     // Process the data into visualization format
