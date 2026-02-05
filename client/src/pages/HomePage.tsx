@@ -4,47 +4,24 @@ export default function HomePage() {
             {/* Hero Section */}
             <div style={{
                 display: 'flex',
-                gap: 'var(--spacing-xl)',
+                gap: 'var(--spacing-lg)',
                 marginBottom: 'var(--spacing-2xl)',
-                flexWrap: 'wrap',
-                justifyContent: 'center'
+                justifyContent: 'center',
+				width: '100%',
+				flexWrap: 'wrap'
             }}>
-                <div style={{
-                    flex: '1 1 400px',
-                    maxWidth: '600px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                }}>
+
                     <img
                         src="/Picture2.png"
                         alt="FunCirc Research Workflow"
-                        style={{
-                            width: '100%',
-                            height: 'auto',
-                            borderRadius: 'var(--radius-lg)',
-                            boxShadow: 'var(--shadow-md)'
-                        }}
+						className="home-diagrams"
                     />
-                </div>
-                <div style={{
-                    flex: '1 1 350px',
-                    maxWidth: '450px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                }}>
+
                     <img
                         src="/Picture1.png"
                         alt="circRNA shRNA Library Composition"
-                        style={{
-                            width: '100%',
-                            height: 'auto',
-                            borderRadius: 'var(--radius-lg)',
-                            boxShadow: 'var(--shadow-md)'
-                        }}
+						className="home-diagrams"
                     />
-                </div>
             </div>
 
             {/* Divider */}
@@ -63,7 +40,7 @@ export default function HomePage() {
             </h2>
 
             {/* Description */}
-            <div className="card" style={{ maxWidth: '900px' }}>
+            <div className="card" style={{ maxWidth: '100%' }}>
                 <p style={{
                     fontSize: '1rem',
                     lineHeight: '1.8',
