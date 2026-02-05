@@ -41,13 +41,17 @@ async function preloadStudies(): Promise<void> {
 
     await Promise.allSettled(
         studies.map(async (studyId) => {
-            // Genes
-            const genes = await loadJSON<{ genes: string[] }>(`${studyId}/genes.json`);
-            if (genes) setCache(`genes:${studyId}::`, genes);
 
-            // Annotations
-            const ann = await loadJSON<CircRNAAnnotation[]>(`${studyId}/annotations.json`);
-            if (ann) setCache(`annotations:${studyId}::`, { data: ann });
+            // Only these have root-level genes/annotations.json
+            if (studyId === 'her-et-al' || studyId === 'chen-et-al') {
+                // Genes
+                const genes = await loadJSON<{ genes: string[] }>(`${studyId}/genes.json`);
+                if (genes) setCache(`genes:${studyId}::`, genes);
+
+                // Annotations
+                const ann = await loadJSON<CircRNAAnnotation[]>(`${studyId}/annotations.json`);
+                if (ann) setCache(`annotations:${studyId}::`, { data: ann });
+            }
 
             // Study-specific essentiality backing files
             if (studyId === 'her-et-al') {
