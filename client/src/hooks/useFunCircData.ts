@@ -167,7 +167,7 @@ export function useClinicalGeneList(datasetId: ClinicalDatasetId) {
 export function useClinicalExpression(datasetId: ClinicalDatasetId, gene: string | null) {
     return useQuery({
         queryKey: ['clinical-expression', datasetId, gene],
-        queryFn: () => fetchJson<{ data: unknown; gene: string }>(`/api/clinical/${datasetId}/expression?gene=${encodeURIComponent(gene!)}`),
+        queryFn: () => fetchJson<{ rawData: unknown[]; gene: string; annotations: any[] }>(`${API_BASE}/clinical/${datasetId}/expression?gene=${encodeURIComponent(gene!)}`),
         enabled: !!datasetId && !!gene,
         staleTime: 5 * 60 * 1000,
     });

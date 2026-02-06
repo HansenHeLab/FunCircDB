@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 interface LiuPlotData {
     gene: string;
@@ -27,6 +27,32 @@ export default function LiuScreenPlot({
     const margin = { top: 40, right: 40, bottom: 60, left: 60 };
     const chartWidth = width - margin.left - margin.right;
     const chartHeight = height - margin.top - margin.bottom;
+
+    const [tooltip, setTooltip] = useState<{
+        visible: boolean;
+        x: number;
+        y: number;
+        content: { gene: string; rank: number; score: number } | null;
+    }>({
+        visible: false,
+        x: 0,
+        y: 0,
+        content: null,
+    });
+
+    const handleMouseEnter = (e: React.MouseEvent, d: LiuPlotData) => {
+        const rect = (e.target as Element).getBoundingClientRect();
+        setTooltip({
+            visible: true,
+            x: rect.left + rect.width / 2, // Centered horizontally
+            y: rect.top, // Above the element
+            content: { gene: d.gene, rank: d.rank, score: d.score },
+        });
+    };
+
+    const handleMouseLeave = () => {
+        setTooltip(prev => ({ ...prev, visible: false }));
+    };
 
     // Filters and Scales
     const cleanData = useMemo(() => {
@@ -161,6 +187,8 @@ export default function LiuScreenPlot({
                                 r={2}
                                 fill="var(--color-primary)"
                                 opacity={0.3}
+                                onMouseEnter={(e) => handleMouseEnter(e, d)}
+                                onMouseLeave={handleMouseLeave}
                             />
                         ))}
                     </g>
@@ -183,6 +211,9 @@ export default function LiuScreenPlot({
                                 fill="red"
                                 stroke="white"
                                 strokeWidth={2}
+                                style={{ cursor: 'pointer' }}
+                                onMouseEnter={(e) => highlightPoint && handleMouseEnter(e, highlightPoint)}
+                                onMouseLeave={handleMouseLeave}
                             />
                             <text
                                 x={xScale(highlightPoint.rank)}
@@ -197,7 +228,35 @@ export default function LiuScreenPlot({
                         </g>
                     )}
                 </g>
+
             </svg>
-        </div>
+
+            {/* Tooltip */}
+            {
+                tooltip.visible && tooltip.content && (
+                    <div
+                        className="tooltip"
+                        style={{
+                            position: 'fixed',
+                            left: tooltip.x,
+                            top: tooltip.y,
+                            transform: 'translate(-50%, -120%)',
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            color: 'white',
+                            padding: '4px 8px',
+                            borderRadius: '4px',
+                            fontSize: '11px',
+                            pointerEvents: 'none',
+                            zIndex: 1000,
+                            whiteSpace: 'nowrap',
+                        }}
+                    >
+                        <div style={{ fontWeight: 'bold', marginBottom: '2px' }}>{tooltip.content.gene}</div>
+                        <div>Rank: {tooltip.content.rank}</div>
+                        <div>Score: {tooltip.content.score.toFixed(3)}</div>
+                    </div>
+                )
+            }
+        </div >
     );
 }

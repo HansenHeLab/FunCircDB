@@ -130,6 +130,7 @@ clinicalRouter.get('/:id/expression', async (req, res) => {
             return true;
         }).map(row => ({
             circID: String(row.circID || row.id || ''),
+            id: String(row.id || ''),
             ENT: String(row.ENT || ''),
             gene: String(row.gene || ''),
             index: String(row.index || ''),
@@ -138,50 +139,14 @@ clinicalRouter.get('/:id/expression', async (req, res) => {
             lengthE: row.lengthE,
         }));
 
-        if (datasetId === 'arul-et-al') {
-            // Group by cancerType
-            const byType: Record<string, number[]> = {};
-            filteredData.forEach(row => {
-                const ct = String(row.cancerType || 'Unknown');
-                if (!byType[ct]) byType[ct] = [];
-                const val = Number(row.circRNA_ncpm || row.value || row.counts || 0);
-                if (!isNaN(val)) byType[ct].push(val);
-            });
-            const data = Object.entries(byType).map(([cancerType, values]) => ({ cancerType, values }));
-            return res.json({ data, gene: queryGene, annotations });
-        } else if (datasetId === 'breast-cohort') {
-            // Group by subtype
-            const bySubtype: Record<string, number[]> = {};
-            filteredData.forEach(row => {
-                const subtype = String(row.Sample_Type || row.cancer_type || row.Subtype || 'Unknown');
-                if (!bySubtype[subtype]) bySubtype[subtype] = [];
-                const val = Number(row.circRNA_rpkm || row.value || 0);
-                if (!isNaN(val)) bySubtype[subtype].push(val);
-            });
-            const data = Object.entries(bySubtype).map(([subtype, values]) => ({ subtype, values }));
-            return res.json({ data, gene: queryGene, annotations });
-        } else if (datasetId === 'cpcg') {
-            // CPCG - wide format with patient columns (CPCG_0100, CPCG_0183, etc.)
-            // Extract values from all CPCG_ columns and aggregate
-            const annotationFields = ['circID', 'ENT', 'gene', 'Gene', 'flanking', 'type', 'numE', 'lengthE', 'index', 'name', 'strand', 'chr', 'id', 'ENS'];
 
-            // For each circRNA in the filtered data, collect all patient values
-            const allValues: number[] = [];
-            filteredData.forEach(row => {
-                Object.keys(row).forEach(key => {
-                    if (key.startsWith('CPCG_') && !annotationFields.includes(key)) {
-                        const val = Number(row[key]);
-                        if (!isNaN(val)) allValues.push(val);
-                    }
-                });
-            });
-
-            return res.json({ data: { values: allValues }, gene: queryGene, annotations });
-        } else {
-            // Default - treat as single group
-            const values = filteredData.map(row => Number(row.value || 0)).filter(v => !isNaN(v));
-            return res.json({ data: { values }, gene: queryGene, annotations });
-        }
+        // Return raw data to let the frontend handle filtering by selected circRNA/isoform
+        // This avoids the issue where backend aggregates all isoforms for a gene, leading to inflated counts.
+        return res.json({
+            rawData: filteredData,
+            gene: queryGene,
+            annotations
+        });
     }
 
     // Fallback: If no real data found, return empty or mock structure (to prevent UI crash)
