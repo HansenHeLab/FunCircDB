@@ -180,47 +180,6 @@ npm run build
 - **CPCG (Fraser et al.)** – Canadian Prostate Cancer Genome Network
 - **In-house Breast Cohort** – Breast cancer subtypes
 
-## Deployment
-
-For deployment to Google Cloud Platform, see the [DEPLOYMENT.md](DEPLOYMENT.md) guide.
-
-### Quick Deploy to Cloud Run
-
-```bash
-# Build Docker image
-docker build -t funcirc-app .
-
-# Push to Artifact Registry
-docker tag funcirc-app us-central1-docker.pkg.dev/[PROJECT-ID]/funcirc/app:v1
-docker push us-central1-docker.pkg.dev/[PROJECT-ID]/funcirc/app:v1
-
-# Deploy to Cloud Run
-gcloud run deploy funcirc \
-    --image us-central1-docker.pkg.dev/[PROJECT-ID]/funcirc/app:v1 \
-    --memory 4Gi \
-    --allow-unauthenticated
-```
-
-## Files to Include in GitHub
-
-Upload these files/folders (the `.gitignore` will exclude `node_modules/` and build artifacts):
-
-```
-✅ client/           (entire folder)
-✅ server/           (entire folder, including server/data/ with JSON files)
-✅ scripts/          (data conversion utilities)
-✅ .gitignore
-✅ package.json
-✅ README.md
-✅ Dockerfile        (if deploying to cloud)
-
-❌ node_modules/     (excluded by .gitignore)
-❌ dist/             (excluded by .gitignore)
-```
-
-> **Note**: The `server/data/` folder contains large JSON files. Consider using [Git LFS](https://git-lfs.github.com/) for files over 100MB, or host data externally.
-
-## License
 
 This project is for research purposes. Please cite the original studies when using this database.
 
