@@ -26,13 +26,7 @@ const COLOR_NEUTRAL = '#ffffff';   // White for zero
 
 const Legend = (selectedStudy: string | null) => {
 	return (
-        <div style={{
-            display: 'flex',
-            justifyContent: 'center',
-            gap: 'var(--spacing-xl)',
-            marginTop: 'var(--spacing-md)',
-            fontSize: '0.875rem'
-        }}>
+        <div className='legend'>
 			<div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
 				<div style={{ width: 12, height: 12, borderRadius: '50%', background: '#dc2626' }}></div>
 				<span>Positive log₂FC</span>
@@ -212,7 +206,7 @@ export function EssentialityDotMap({
                     ref={svgRef}
                     width={svgWidth}
                     height={svgHeight}
-                    style={{ fontFamily: 'Inter, sans-serif', display: 'block' }}
+                    style={{ fontFamily: 'Inter, sans-serif', display: 'block', flex: '0 0 auto' }}
                 >
                     {/* Title */}
                     {title && (

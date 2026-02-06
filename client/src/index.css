@@ -370,6 +370,10 @@ a:hover {
     .home-diagrams {
 		max-width: 320px !important;
 	}
+	.legend{
+		flex-direction: column !important;
+    	gap: var(--spacing-xs) !important;
+	}
 }
 
 /* Tooltip */
@@ -401,4 +405,13 @@ a:hover {
 	background: white;
 	border-radius: var(--radius-lg);
 	box-shadow: var(--shadow-md);
+}
+
+.legend {
+	display: flex;
+	flex-direction: row;
+    justify-content: center;
+    gap: var(--spacing-xl);
+    margin-top: var(--spacing-md);
+    font-size: 0.875rem;
 }
