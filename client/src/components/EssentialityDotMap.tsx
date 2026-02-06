@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useRef } from 'react';
+import { useState, useCallback, useRef } from 'react';
 
 // ============================================================
 // EssentialityDotMap - SVG visualization ported from R's create.dotmap
@@ -127,10 +127,10 @@ export function EssentialityDotMap({
     const svgHeight = Math.max(minHeight, calculatedHeight);
     const maxRadius = cellSize * 0.4;
 
-    // Calculate min/max for legend
-    const allValues = useMemo(() => data.values.flat(), [data.values]);
-    const minValue = Math.min(...allValues);
-    const maxValue = Math.max(...allValues);
+    // // Calculate min/max for legend
+    // const allValues = useMemo(() => data.values.flat(), [data.values]);
+    // const minValue = Math.min(...allValues);
+    // const maxValue = Math.max(...allValues);
 
     const handleMouseEnter = useCallback((
         e: React.MouseEvent,

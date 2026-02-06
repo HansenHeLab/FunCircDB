@@ -1,6 +1,6 @@
 import { useStore, type StudyId, type Timepoint, type CellLine, type TissueType } from '../store/useStore';
 import { useGeneList } from '../hooks/useFunCircData';
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 
 /**
  * StudyFilters - Renders conditional filter dropdowns based on selected study
@@ -92,7 +92,7 @@ export function StudyFilters({ showCircRNASelector = true }: StudyFiltersProps) 
                     >
                         <option value="">Choose a study...</option>
                         {STUDIES.map(study => (
-                            <option key={study.id} value={study.id}>{study.name}</option>
+                            <option key={study.id} value={study.id as string}>{study.name}</option>
                         ))}
                     </select>
                 </div>
@@ -108,7 +108,7 @@ export function StudyFilters({ showCircRNASelector = true }: StudyFiltersProps) 
                         >
                             <option value="">Choose a cell line...</option>
                             {CELL_LINES.map(cl => (
-                                <option key={cl} value={cl}>{cl}</option>
+                                <option key={cl} value={cl as string}>{cl}</option>
                             ))}
                         </select>
                     </div>
@@ -125,7 +125,7 @@ export function StudyFilters({ showCircRNASelector = true }: StudyFiltersProps) 
                         >
                             <option value="">Choose a tissue type...</option>
                             {TISSUE_TYPES.map(tt => (
-                                <option key={tt} value={tt}>{tt}</option>
+                                <option key={tt} value={tt as string}>{tt}</option>
                             ))}
                         </select>
                     </div>
@@ -145,7 +145,7 @@ export function StudyFilters({ showCircRNASelector = true }: StudyFiltersProps) 
                                 {selectedStudy === 'liu-et-al' ? 'D1 vs D30' : 'Choose timepoint...'}
                             </option>
                             {selectedStudy !== 'liu-et-al' && TIMEPOINTS.map(tp => (
-                                <option key={tp} value={tp}>{tp}</option>
+                                <option key={tp} value={tp as string}>{tp}</option>
                             ))}
                         </select>
                     </div>
