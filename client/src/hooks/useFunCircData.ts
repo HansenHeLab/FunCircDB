@@ -1,8 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import type { StudyId, ClinicalDatasetId, Timepoint, CellLine, TissueType } from '../store/useStore';
 
-const API_BASE = '/api';
-
 // --- Types ---
 export interface Study {
     id: string;
@@ -63,7 +61,7 @@ async function fetchJson<T>(url: string): Promise<T> {
 export function useStudies() {
     return useQuery({
         queryKey: ['studies'],
-        queryFn: () => fetchJson<Study[]>(`${API_BASE}/studies`),
+        queryFn: () => fetchJson<Study[]>(`/api/studies`),
         staleTime: Infinity, // Studies list never changes
     });
 }
@@ -79,7 +77,7 @@ export function useGeneList(
 
     return useQuery({
         queryKey: ['genes', studyId, options?.cellLine, options?.tissueType],
-        queryFn: () => fetchJson<{ genes: string[] }>(`${API_BASE}/studies/${studyId}/genes?${params}`),
+        queryFn: () => fetchJson<{ genes: string[] }>(`/api/studies/${studyId}/genes?${params}`),
         enabled: !!studyId,
         staleTime: 5 * 60 * 1000,
     });
@@ -99,7 +97,7 @@ export function useCircRNAIsoforms(
     return useQuery({
         queryKey: ['circrnas', studyId, gene, options?.cellLine, options?.tissueType],
         queryFn: () => fetchJson<{ data: CircRNAAnnotation[] }>(
-            `${API_BASE}/studies/${studyId}/annotations?${params}`
+            `/api/studies/${studyId}/annotations?${params}`
         ),
         enabled: !!studyId && !!gene,
         staleTime: 5 * 60 * 1000,
@@ -117,7 +115,7 @@ export function useStudyAnnotations(
 
     return useQuery({
         queryKey: ['annotations', studyId, options?.cellLine, options?.tissueType],
-        queryFn: () => fetchJson<{ data: CircRNAAnnotation[] }>(`${API_BASE}/studies/${studyId}/annotations?${params}`),
+        queryFn: () => fetchJson<{ data: CircRNAAnnotation[] }>(`/api/studies/${studyId}/annotations?${params}`),
         // Enable only for Li et al. (CDCscreen) when cellLine is selected
         enabled: !!studyId && studyId === 'li-et-al' && !!options?.cellLine,
         staleTime: 30 * 60 * 1000,
@@ -138,7 +136,7 @@ export function useEssentialityData(
 
     return useQuery({
         queryKey: ['essentiality', studyId, circRNAId, options],
-        queryFn: () => fetchJson<EssentialityData>(`${API_BASE}/studies/${studyId}/essentiality?${params}`),
+        queryFn: () => fetchJson<EssentialityData>(`/api/studies/${studyId}/essentiality?${params}`),
         enabled: !!studyId && !!circRNAId,
         staleTime: 5 * 60 * 1000,
     });
@@ -150,7 +148,7 @@ export function useEssentialityData(
 export function useClinicalDatasets() {
     return useQuery({
         queryKey: ['clinical-datasets'],
-        queryFn: () => fetchJson<Study[]>(`${API_BASE}/clinical`),
+        queryFn: () => fetchJson<Study[]>(`/api/clinical`),
         staleTime: Infinity,
     });
 }
@@ -159,7 +157,7 @@ export function useClinicalDatasets() {
 export function useClinicalGeneList(datasetId: ClinicalDatasetId) {
     return useQuery({
         queryKey: ['clinical-genes', datasetId],
-        queryFn: () => fetchJson<{ genes: string[] }>(`${API_BASE}/clinical/${datasetId}/genes`),
+        queryFn: () => fetchJson<{ genes: string[] }>(`/api/clinical/${datasetId}/genes`),
         enabled: !!datasetId,
         staleTime: 5 * 60 * 1000,
     });

@@ -219,13 +219,13 @@ a:hover {
 
 /* Buttons */
 .btn {
-  display: inline-flex;
+  display: flex;
+  gap: 6px;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-xs);
   padding: var(--spacing-sm) var(--spacing-md);
   border-radius: var(--radius-md);
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   font-weight: 500;
   font-family: inherit;
   cursor: pointer;
@@ -367,6 +367,13 @@ a:hover {
   .app-container {
     flex-direction: column;
   }
+    .home-diagrams {
+		max-width: 320px !important;
+	}
+	.legend{
+		flex-direction: column !important;
+    	gap: var(--spacing-xs) !important;
+	}
 }
 
 /* Tooltip */
@@ -391,4 +398,20 @@ a:hover {
   transform: translateX(-50%);
   border: 6px solid transparent;
   border-top-color: var(--color-text);
+}
+
+.home-diagrams {
+	max-width: 700px;
+	background: white;
+	border-radius: var(--radius-lg);
+	box-shadow: var(--shadow-md);
+}
+
+.legend {
+	display: flex;
+	flex-direction: row;
+    justify-content: center;
+    gap: var(--spacing-xl);
+    margin-top: var(--spacing-md);
+    font-size: 0.875rem;
 }

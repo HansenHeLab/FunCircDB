@@ -22,6 +22,17 @@ npm-debug.log*
 .DS_Store
 Thumbs.db
 
+li-et-al/
+chen-et-al/
+her-et-al/
+liu-et-al/
+gene-search-index.json
+
+# Large data files (exceed GitHub's 100MB limit)
+# Share these via Google Drive/Dropbox and place in data/ folder
+data/clinical/arul-et-al.jsonl
+data/clinical/breast-cohort.jsonl  
+data/clinical/cpcg.jsonl
 # Large data files 
 data/clinical/arul-et-al-genes.json
 data/clinical/breast-cohort-genes.json  
@@ -35,3 +46,4 @@ data/her-et-al/screen_data.json
 # Credentials
 credentials.json
 token.json
+funcirc_key.json

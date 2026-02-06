@@ -1,21 +1,23 @@
 import { Router } from 'express';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
 import type { StudyId, PaginatedResponse, GeneListResponse, EssentialityData, CircRNAAnnotation } from '../types.js';
+import dotenv from 'dotenv'; dotenv.config();
+import path from 'path';
+import { Storage } from '@google-cloud/storage';
 
 export const studiesRouter = Router();
 
-// Data directory path - goes up from server/src/routes to /db_react/data
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DATA_DIR = path.join(__dirname, '../../../data');
+const BUCKET_NAME = process.env.GCS_BUCKET || '';
+
+const storage = new Storage({
+			keyFilename: path.join(process.cwd(), 'funcirc_key.json'),
+		});
 
 // JSON file loader with error handling
-function loadJSON<T>(filepath: string): T | null {
+async function loadJSON<T>(filepath: string): Promise<T | null> {
     try {
-        const fullPath = path.join(DATA_DIR, filepath);
-        if (!fs.existsSync(fullPath)) return null;
-        return JSON.parse(fs.readFileSync(fullPath, 'utf8'));
+        const file = storage.bucket(BUCKET_NAME).file(filepath);
+        const [buf] = await file.download();
+        return JSON.parse(buf.toString('utf8')) as T;
     } catch (err) {
         console.error(`Error loading ${filepath}:`, err);
         return null;
@@ -24,19 +26,59 @@ function loadJSON<T>(filepath: string): T | null {
 
 // In-memory cache (simple LRU could be added)
 const cache = new Map<string, { data: unknown; timestamp: number }>();
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
-function getCached<T>(key: string): T | null {
+function getCached<T>(key: string): T {
     const entry = cache.get(key);
-    if (entry && Date.now() - entry.timestamp < CACHE_TTL) {
-        return entry.data as T;
-    }
-    cache.delete(key);
-    return null;
+    return entry?.data as T;
 }
 
 function setCache(key: string, data: unknown): void {
     cache.set(key, { data, timestamp: Date.now() });
+}
+
+async function preloadStudies(): Promise<void> {
+    const studies: StudyId[] = ['her-et-al', 'liu-et-al', 'li-et-al', 'chen-et-al'];
+
+    await Promise.allSettled(
+        studies.map(async (studyId) => {
+
+            // Only these have root-level genes/annotations.json
+            if (studyId === 'her-et-al' || studyId === 'chen-et-al') {
+                // Genes
+                const genes = await loadJSON<{ genes: string[] }>(`${studyId}/genes.json`);
+                if (genes) setCache(`genes:${studyId}::`, genes);
+
+                // Annotations
+                const ann = await loadJSON<CircRNAAnnotation[]>(`${studyId}/annotations.json`);
+                if (ann) setCache(`annotations:${studyId}::`, { data: ann });
+            }
+
+            // Study-specific essentiality backing files
+            if (studyId === 'her-et-al') {
+                const screen = await loadJSON<Record<string, unknown>[]>(`${studyId}/screen_data.json`);
+                if (screen) setCache(`her:screen_data`, screen);
+
+                const herAnn = await loadJSON<Record<string, unknown>[]>(`${studyId}/annotations.json`);
+                if (herAnn) setCache(`her:annotations`, herAnn);
+            }
+
+            if (studyId === 'chen-et-al') {
+                const circ = await loadJSON<Record<string, unknown>[]>(`${studyId}/circ_data.json`);
+                if (circ) setCache(`chen:circ_data`, circ);
+
+                const lin = await loadJSON<Record<string, unknown>[]>(`${studyId}/linear_data.json`);
+                if (lin) setCache(`chen:linear_data`, lin);
+
+                const chenAnn = await loadJSON<Record<string, unknown>[]>(`${studyId}/annotations.json`);
+                if (chenAnn) setCache(`chen:annotations`, chenAnn);
+            }
+        })
+    );
+    console.log('Cache preload complete!');
+}
+console.log(process.env.DEPLOYED)
+if (process.env.DEPLOYED) {
+	void preloadStudies().catch(err => console.error('preloading studies has failed, review logs:', err));
 }
 
 // GET /api/studies - List all available studies
@@ -69,7 +111,7 @@ studiesRouter.get('/:id/genes', async (req, res) => {
         genePath = `${studyId}/${String(tissueType).toLowerCase()}/genes.json`;
     }
 
-    const jsonData = loadJSON<{ genes: string[] }>(genePath);
+    const jsonData = await loadJSON<{ genes: string[] }>(genePath);
     if (jsonData) {
         setCache(cacheKey, jsonData);
         return res.json(jsonData);
@@ -109,14 +151,14 @@ studiesRouter.get('/:id/annotations', async (req, res) => {
         annotationPath = `${studyId}/${String(tissueType).toLowerCase()}/data.json`;
     }
 
-    let jsonData = loadJSON<CircRNAAnnotation[]>(annotationPath);
+    let jsonData = await loadJSON<CircRNAAnnotation[]>(annotationPath);
 
     // Fallback: try annotations.json if data.json doesn't exist
     if (!jsonData && (cellLine || tissueType)) {
         const fallbackPath = cellLine
             ? `${studyId}/${String(cellLine).toLowerCase()}/annotations.json`
             : `${studyId}/${String(tissueType).toLowerCase()}/annotations.json`;
-        jsonData = loadJSON<CircRNAAnnotation[]>(fallbackPath);
+        jsonData = await loadJSON<CircRNAAnnotation[]>(fallbackPath);
     }
 
     if (jsonData) {
@@ -211,9 +253,28 @@ studiesRouter.get('/:id/essentiality', async (req, res) => {
     try {
         // Chen et al. uses separate circ_data.json and linear_data.json files
         if (studyId === 'chen-et-al') {
-            const circData = loadJSON<Record<string, unknown>[]>(`${studyId}/circ_data.json`);
-            const linearData = loadJSON<Record<string, unknown>[]>(`${studyId}/linear_data.json`);
-            const annotations = loadJSON<Record<string, unknown>[]>(`${studyId}/annotations.json`);
+			let circData = null;
+			let linearData = null;
+			let annotations = null;
+
+			// Ensures we don't preload data locally to to avoid egress costs
+			if (process.env.DEPLOYED) {
+				circData =
+					getCached<Record<string, unknown>[]>(`chen:circ_data`) ??
+					await loadJSON<Record<string, unknown>[]>(`${studyId}/circ_data.json`);
+
+				linearData =
+					getCached<Record<string, unknown>[]>(`chen:linear_data`) ??
+					await loadJSON<Record<string, unknown>[]>(`${studyId}/linear_data.json`);
+
+				annotations =
+					getCached<Record<string, unknown>[]>(`chen:annotations`) ??
+					await loadJSON<Record<string, unknown>[]>(`${studyId}/annotations.json`);
+			} else {
+				circData = await loadJSON<Record<string, unknown>[]>(`${studyId}/circ_data.json`);
+				linearData = await loadJSON<Record<string, unknown>[]>(`${studyId}/linear_data.json`);
+				annotations = await loadJSON<Record<string, unknown>[]>(`${studyId}/annotations.json`);			
+			}
 
             if (!circData) {
                 return res.json({ values: [], pvalues: [], rowLabels: [], colLabels: [] });
@@ -323,8 +384,22 @@ studiesRouter.get('/:id/essentiality', async (req, res) => {
 
         // Her et al. uses screen_data.json format
         if (studyId === 'her-et-al') {
-            const screenData = loadJSON<Record<string, unknown>[]>(`${studyId}/screen_data.json`);
-            const annotations = loadJSON<Record<string, unknown>[]>(`${studyId}/annotations.json`);
+
+			let screenData = null;
+			let annotations = null;
+			// Ensures we don't preload data locally to to avoid egress costs
+			if (process.env.DEPLOYED) {
+				screenData =
+					getCached<Record<string, unknown>[]>(`her:screen_data`) ??
+					await loadJSON<Record<string, unknown>[]>(`${studyId}/screen_data.json`);
+				annotations =
+					getCached<Record<string, unknown>[]>(`her:annotations`) ??
+					await loadJSON<Record<string, unknown>[]>(`${studyId}/annotations.json`);
+			} else {
+				screenData = await loadJSON<Record<string, unknown>[]>(`${studyId}/screen_data.json`);
+            	annotations = await loadJSON<Record<string, unknown>[]>(`${studyId}/annotations.json`);
+			}
+
 
             if (!screenData) {
                 return res.json({ values: [], pvalues: [], rowLabels: [], colLabels: [] });
@@ -403,7 +478,7 @@ studiesRouter.get('/:id/essentiality', async (req, res) => {
         // Liu et al. - tissue-specific cell lines (shRNA dotmap), no neg/pos split, no linear (only circRNA)
         if (studyId === 'liu-et-al' && tissueType) {
             const tissueKey = String(tissueType).toLowerCase();
-            const tissueData = loadJSON<Record<string, unknown>[]>(`${studyId}/${tissueKey}/data.json`);
+            const tissueData = await loadJSON<Record<string, unknown>[]>(`${studyId}/${tissueKey}/data.json`);
 
             if (!tissueData) {
                 return res.json({ values: [], pvalues: [], rowLabels: [], colLabels: [] });

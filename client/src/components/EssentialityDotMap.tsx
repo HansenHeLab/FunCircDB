@@ -16,12 +16,40 @@ export interface EssentialityDotMapProps {
     title?: string;
     onCellClick?: (row: number, col: number, value: number, pvalue: number) => void;
     showPValueLegend?: boolean;
+	selectedStudy: string | null
 }
 
 // BoutrosLab dotmap color palette
 const COLOR_NEGATIVE = '#2563eb';  // Blue for negative log2FC
 const COLOR_POSITIVE = '#dc2626';  // Red for positive log2FC
 const COLOR_NEUTRAL = '#ffffff';   // White for zero
+
+const Legend = (selectedStudy: string | null) => {
+	return (
+        <div className='legend'>
+			<div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
+				<div style={{ width: 12, height: 12, borderRadius: '50%', background: '#dc2626' }}></div>
+				<span>Positive log₂FC</span>
+			</div>
+			<div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
+				<div style={{ width: 12, height: 12, borderRadius: '50%', background: '#2563eb' }}></div>
+				<span>Negative log₂FC</span>
+			</div>
+			{selectedStudy !== 'liu-et-al' && (
+				<>
+					<div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
+						<div style={{ width: 12, height: 12, border: '1px solid #ddd', background: '#000' }}></div>
+						<span>Significant (p &lt; 0.05)</span>
+					</div>
+					<div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
+						<div style={{ width: 12, height: 12, border: '1px solid #ddd', background: '#fff' }}></div>
+						<span>Not Significant</span>
+					</div>
+				</>
+			)}
+        </div>
+	)
+}
 
 // P-value color scale (black = significant, white = not significant)
 function getPValueColor(pval: number): string {
@@ -72,6 +100,7 @@ export function EssentialityDotMap({
     title,
     onCellClick,
     showPValueLegend = true,
+	selectedStudy,
 }: EssentialityDotMapProps) {
     const svgRef = useRef<SVGSVGElement>(null);
     const [tooltip, setTooltip] = useState<TooltipState>({
@@ -163,21 +192,21 @@ export function EssentialityDotMap({
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-md)' }}>
                 <h3 className="viz-title">{title || 'Essentiality DotMap'}</h3>
                 <button className="btn btn-secondary" onClick={handleExportSVG}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+					Export SVG
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                         <polyline points="7,10 12,15 17,10" />
                         <line x1="12" y1="15" x2="12" y2="3" />
                     </svg>
-                    Export SVG
                 </button>
             </div>
 
-            <div style={{ overflowX: 'auto' }}>
+            <div style={{ overflowX: 'auto', display: 'flex', justifyContent: 'center'}}>
                 <svg
                     ref={svgRef}
                     width={svgWidth}
                     height={svgHeight}
-                    style={{ fontFamily: 'Inter, sans-serif', display: 'block' }}
+                    style={{ fontFamily: 'Inter, sans-serif', display: 'block', flex: '0 0 auto' }}
                 >
                     {/* Title */}
                     {title && (
@@ -325,6 +354,7 @@ export function EssentialityDotMap({
                     <div>p-value: {showPValueLegend ? tooltip.content.pvalue.toFixed(4) : 'None (threshold based)'}</div>
                 </div>
             )}
+			{Legend(selectedStudy)}
         </div>
     );
 }

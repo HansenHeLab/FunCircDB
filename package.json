@@ -1,20 +1,20 @@
 {
-  "name": "funcirc",
-  "version": "1.0.0",
-  "private": true,
-  "type": "module",
-  "workspaces": [
-    "client",
-    "server"
-  ],
-  "scripts": {
-    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
-    "dev:client": "npm run dev --workspace=client",
-    "dev:server": "npm run dev --workspace=server",
-    "build": "npm run build --workspaces",
-    "convert-data": "node scripts/convert_data.js"
-  },
-  "devDependencies": {
-    "concurrently": "^8.2.2"
-  }
+	"name": "funcirc",
+	"version": "1.0.0",
+	"private": true,
+	"type": "module",
+	"workspaces": [
+		"client",
+		"server"
+	],
+	"scripts": {
+		"dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+		"dev:client": "npm run dev --workspace=client",
+		"dev:server": "npm run dev --workspace=server",
+		"build": "npm run build --workspaces",
+		"convert-data": "node scripts/convert_data.js"
+	},
+	"devDependencies": {
+		"concurrently": "^8.2.2"
+	}
 }

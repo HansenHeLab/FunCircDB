@@ -4,47 +4,24 @@ export default function HomePage() {
             {/* Hero Section */}
             <div style={{
                 display: 'flex',
-                gap: 'var(--spacing-xl)',
+                gap: 'var(--spacing-lg)',
                 marginBottom: 'var(--spacing-2xl)',
-                flexWrap: 'wrap',
-                justifyContent: 'center'
+                justifyContent: 'center',
+				width: '100%',
+				flexWrap: 'wrap'
             }}>
-                <div style={{
-                    flex: '1 1 400px',
-                    maxWidth: '600px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                }}>
+
                     <img
                         src="/Picture2.png"
                         alt="FunCirc Research Workflow"
-                        style={{
-                            width: '100%',
-                            height: 'auto',
-                            borderRadius: 'var(--radius-lg)',
-                            boxShadow: 'var(--shadow-md)'
-                        }}
+						className="home-diagrams"
                     />
-                </div>
-                <div style={{
-                    flex: '1 1 350px',
-                    maxWidth: '450px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                }}>
+
                     <img
                         src="/Picture1.png"
                         alt="circRNA shRNA Library Composition"
-                        style={{
-                            width: '100%',
-                            height: 'auto',
-                            borderRadius: 'var(--radius-lg)',
-                            boxShadow: 'var(--shadow-md)'
-                        }}
+						className="home-diagrams"
                     />
-                </div>
             </div>
 
             {/* Divider */}
@@ -63,7 +40,7 @@ export default function HomePage() {
             </h2>
 
             {/* Description */}
-            <div className="card" style={{ maxWidth: '900px' }}>
+            <div className="card" style={{ maxWidth: '100%' }}>
                 <p style={{
                     fontSize: '1rem',
                     lineHeight: '1.8',
@@ -211,7 +188,7 @@ export default function HomePage() {
             </div>
 
             {/* Citations Section */}
-            <div className="card" style={{ maxWidth: '900px', marginTop: 'var(--spacing-xl)' }}>
+            <div className="card" style={{ marginTop: 'var(--spacing-xl)' }}>
                 <h3 style={{ marginBottom: 'var(--spacing-md)', color: 'var(--color-primary)' }}>Citations</h3>
                 <p style={{ marginBottom: 'var(--spacing-md)', color: 'var(--color-text)', lineHeight: '1.6' }}>
                     This project utilizes datasets and methodologies from multiple studies. If you use FunCirc in your research, please consider citing the following sources:
