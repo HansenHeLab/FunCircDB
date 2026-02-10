@@ -1,4 +1,4 @@
-import { Suspense, lazy, useState } from 'react';
+import { Suspense, lazy, useState, useEffect } from 'react';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { LoadingSpinner } from './components/LoadingSpinner';
 
@@ -9,11 +9,29 @@ const ClinicalExpressionPage = lazy(() => import('./pages/ClinicalExpressionPage
 
 type TabId = 'home' | 'essentiality' | 'clinical';
 
+/* ── Scroll progress bar ─────────────────────────── */
+function ScrollProgress() {
+    const [progress, setProgress] = useState(0);
+    useEffect(() => {
+        const onScroll = () => {
+            const el = document.documentElement;
+            const scrollTop = el.scrollTop;
+            const scrollHeight = el.scrollHeight - el.clientHeight;
+            setProgress(scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0);
+        };
+        window.addEventListener('scroll', onScroll, { passive: true });
+        return () => window.removeEventListener('scroll', onScroll);
+    }, []);
+    return <div className="scroll-progress" style={{ width: `${progress}%` }} />;
+}
+
 export default function App() {
     const [activeTab, setActiveTab] = useState<TabId>('home');
 
     return (
         <div className="app-container">
+            <ScrollProgress />
+
             {/* Sidebar Navigation */}
             <aside className="sidebar">
                 <div className="sidebar-logo">FunCirc</div>
@@ -51,9 +69,11 @@ export default function App() {
             <main className="main-content">
                 <ErrorBoundary>
                     <Suspense fallback={<LoadingSpinner />}>
-                        {activeTab === 'home' && <HomePage />}
-                        {activeTab === 'essentiality' && <EssentialityPage />}
-                        {activeTab === 'clinical' && <ClinicalExpressionPage />}
+                        <div key={activeTab} className="page-enter">
+                            {activeTab === 'home' && <HomePage />}
+                            {activeTab === 'essentiality' && <EssentialityPage />}
+                            {activeTab === 'clinical' && <ClinicalExpressionPage />}
+                        </div>
                     </Suspense>
                 </ErrorBoundary>
             </main>
@@ -93,3 +113,4 @@ function ExpressionIcon() {
         </svg>
     );
 }
+
