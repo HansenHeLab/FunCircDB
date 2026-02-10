@@ -2,6 +2,7 @@ import { Suspense, lazy, useEffect } from 'react';
 import { useStore, type StudyId, type Timepoint } from '../store/useStore';
 import { TableSkeleton, DotMapSkeleton } from '../components/LoadingSpinner';
 import { useGeneList, useCircRNAIsoforms, useEssentialityData, useStudyAnnotations, type CircRNAAnnotation } from '../hooks/useFunCircData';
+import SearchableSelect from '../components/SearchableSelect';
 
 // Lazy load visualizations
 const EssentialityDotMap = lazy(() => import('../components/EssentialityDotMap'));
@@ -169,26 +170,17 @@ export default function EssentialityPage() {
                         </div>
                     )}
 
-                    {/* Gene Selector - DROPDOWN (Strictly Filtered) */}
+                    {/* Gene Selector - SEARCHABLE DROPDOWN */}
                     {(selectedStudy && (selectedTimepoint || selectedCellLine || selectedTissueType)) && (
                         <div className="form-group">
                             <label className="form-label">Select circRNA</label>
-                            <select
-                                className="form-select"
-                                value={selectedCircRNA || ''}
-                                onChange={(e) => {
-                                    setSelectedCircRNA(e.target.value || null);
-                                    // Reset row selection is handled by store/effect
-                                }}
+                            <SearchableSelect
+                                options={geneListData?.genes ?? []}
+                                value={selectedCircRNA}
+                                onChange={(val) => setSelectedCircRNA(val)}
+                                placeholder={genesLoading ? 'Loading genes...' : 'Type to search or select...'}
                                 disabled={genesLoading}
-                            >
-                                <option value="">
-                                    {genesLoading ? 'Loading genes...' : 'Choose a gene...'}
-                                </option>
-                                {geneListData?.genes?.map(gene => (
-                                    <option key={gene} value={gene}>{gene}</option>
-                                ))}
-                            </select>
+                            />
                         </div>
                     )}
                 </div>
@@ -280,7 +272,7 @@ export default function EssentialityPage() {
                                             rowLabels={essentialityData.rowLabels || []}
                                             colLabels={essentialityData.colLabels || []}
                                             showPValueLegend={false}
-											selectedStudy={selectedStudy}
+                                            selectedStudy={selectedStudy}
                                         />
                                     </div>
                                 ) : (
@@ -306,7 +298,7 @@ export default function EssentialityPage() {
                                                             }}
                                                             rowLabels={posIndices.map(({ label }) => label.replace('_pos', ''))}
                                                             colLabels={essentialityData.colLabels || []}
-															selectedStudy={selectedStudy}
+                                                            selectedStudy={selectedStudy}
                                                         />
                                                     </div>
                                                 );
@@ -334,7 +326,7 @@ export default function EssentialityPage() {
                                                             }}
                                                             rowLabels={negIndices.map(({ label }) => label.replace('_neg', ''))}
                                                             colLabels={essentialityData.colLabels || []}
-															selectedStudy={selectedStudy}
+                                                            selectedStudy={selectedStudy}
                                                         />
                                                     </div>
                                                 );
@@ -342,7 +334,7 @@ export default function EssentialityPage() {
                                             return null;
                                         })()}
                                     </>
-                                )}                                
+                                )}
                             </div>
                         ) : (
                             <div className="viz-container">

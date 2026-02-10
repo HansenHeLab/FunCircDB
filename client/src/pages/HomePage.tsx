@@ -192,10 +192,10 @@ export default function HomePage() {
                     <h3>Screening Studies</h3>
                 </div>
                 <ul className="study-list">
-                    <li><strong>Her et al.</strong> – shRNA genome-wide circRNA screen (7 cell lines, 7 tissue types)</li>
-                    <li><a href="https://www.nature.com/articles/s41556-024-01467-y" target="_blank" rel="noopener noreferrer"><strong>Liu et al.</strong> – shRNA-based circRNA screen (18 cell lines, 4 tissue types)</a></li>
-                    <li><a href="https://www.nature.com/articles/s41592-020-01011-4" target="_blank" rel="noopener noreferrer"><strong>Li et al.</strong> – CRISPR-RfxCas13d circRNA screen (3 cell lines, 3 tissue types)</a></li>
-                    <li><a href="https://www.cell.com/cell/fulltext/S0092-8674(19)30058-3" target="_blank" rel="noopener noreferrer"><strong>Chen et al.</strong> – shRNA circRNA screen (4 cell lines, 1 tissue type)</a></li>
+                    <li><strong>Her et al.</strong> – shRNA genome-wide circRNA screen (9,663 circRNAs, 7 cell lines, 7 tissue types)</li>
+                    <li><a href="https://www.nature.com/articles/s41556-024-01467-y" target="_blank" rel="noopener noreferrer"><strong>Liu et al.</strong> – shRNA-based circRNA screen (3,354 circRNAs, 18 cell lines, 4 tissue types)</a></li>
+                    <li><a href="https://www.nature.com/articles/s41592-020-01011-4" target="_blank" rel="noopener noreferrer"><strong>Li et al.</strong> – CRISPR-RfxCas13d circRNA screen (762 circRNAs, 3 cell lines, 3 tissue types)</a></li>
+                    <li><a href="https://www.cell.com/cell/fulltext/S0092-8674(19)30058-3" target="_blank" rel="noopener noreferrer"><strong>Chen et al.</strong> – shRNA circRNA screen (2,000 circRNAs, 4 cell lines, 1 tissue type)</a></li>
                 </ul>
             </div>
 

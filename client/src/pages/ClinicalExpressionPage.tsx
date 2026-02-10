@@ -2,6 +2,7 @@ import { Suspense, lazy } from 'react';
 import { useStore, type ClinicalDatasetId } from '../store/useStore';
 import { useClinicalDatasets, useClinicalGeneList, useClinicalExpression } from '../hooks/useFunCircData';
 import { DotMapSkeleton } from '../components/LoadingSpinner';
+import SearchableSelect from '../components/SearchableSelect';
 
 // Lazy load visualization
 const ClinicalExpressionPlot = lazy(() => import('../components/ClinicalExpressionPlot'));
@@ -140,26 +141,20 @@ export default function ClinicalExpressionPage() {
                         </select>
                     </div>
 
-                    {/* CircRNA/Gene Selector - DROPDOWN */}
+                    {/* CircRNA/Gene Selector - SEARCHABLE DROPDOWN */}
                     {selectedClinicalDataset && (
                         <div className="form-group">
                             <label className="form-label">Select circRNA</label>
-                            <select
-                                className="form-select"
-                                value={selectedClinicalCircRNA || ''}
-                                onChange={(e) => {
-                                    setSelectedClinicalCircRNA(e.target.value || null);
+                            <SearchableSelect
+                                options={geneListData?.genes ?? []}
+                                value={selectedClinicalCircRNA}
+                                onChange={(val) => {
+                                    setSelectedClinicalCircRNA(val);
                                     setSelectedClinicalTableRowIndex(null);
                                 }}
+                                placeholder={genesLoading ? 'Loading genes...' : 'Type to search or select...'}
                                 disabled={genesLoading}
-                            >
-                                <option value="">
-                                    {genesLoading ? 'Loading genes...' : 'Choose a gene...'}
-                                </option>
-                                {geneListData?.genes?.map(gene => (
-                                    <option key={gene} value={gene}>{gene}</option>
-                                ))}
-                            </select>
+                            />
                         </div>
                     )}
                 </div>
