@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect, useRef, useCallback } from 'react';
 
 interface LiuPlotData {
     gene: string;
@@ -28,31 +28,68 @@ export default function LiuScreenPlot({
     const chartWidth = width - margin.left - margin.right;
     const chartHeight = height - margin.top - margin.bottom;
 
+    const tooltipRef = useRef<HTMLDivElement>(null);
     const [tooltip, setTooltip] = useState<{
         visible: boolean;
+        pinned: boolean;
         x: number;
         y: number;
         content: { gene: string; rank: number; score: number } | null;
     }>({
         visible: false,
+        pinned: false,
         x: 0,
         y: 0,
         content: null,
     });
 
-    const handleMouseEnter = (e: React.MouseEvent, d: LiuPlotData) => {
+    const handleMouseEnter = useCallback((e: React.MouseEvent, d: LiuPlotData) => {
+        if (tooltip.pinned) return;
         const rect = (e.target as Element).getBoundingClientRect();
         setTooltip({
             visible: true,
-            x: rect.left + rect.width / 2, // Centered horizontally
-            y: rect.top, // Above the element
+            pinned: false,
+            x: rect.left + rect.width / 2,
+            y: rect.top - 8,
             content: { gene: d.gene, rank: d.rank, score: d.score },
         });
-    };
+    }, [tooltip.pinned]);
 
-    const handleMouseLeave = () => {
+    const handleMouseLeave = useCallback(() => {
+        if (tooltip.pinned) return;
         setTooltip(prev => ({ ...prev, visible: false }));
-    };
+    }, [tooltip.pinned]);
+
+    const handleDotClick = useCallback((e: React.MouseEvent, d: LiuPlotData) => {
+        const rect = (e.target as Element).getBoundingClientRect();
+        setTooltip({
+            visible: true,
+            pinned: true,
+            x: rect.left + rect.width / 2,
+            y: rect.top - 8,
+            content: { gene: d.gene, rank: d.rank, score: d.score },
+        });
+    }, []);
+
+    useEffect(() => {
+        if (!tooltip.pinned) return;
+
+        const handleClickOutside = (e: MouseEvent) => {
+            const target = e.target as HTMLElement;
+            if (tooltipRef.current?.contains(target)) return;
+            if ((target as unknown as SVGElement).closest?.('circle')) return;
+            setTooltip(prev => ({ ...prev, visible: false, pinned: false }));
+        };
+
+        const timer = setTimeout(() => {
+            document.addEventListener('click', handleClickOutside);
+        }, 0);
+
+        return () => {
+            clearTimeout(timer);
+            document.removeEventListener('click', handleClickOutside);
+        };
+    }, [tooltip.pinned]);
 
     // Filters and Scales
     const cleanData = useMemo(() => {
@@ -187,8 +224,10 @@ export default function LiuScreenPlot({
                                 r={2}
                                 fill="var(--color-primary)"
                                 opacity={0.3}
+                                style={{ cursor: 'pointer' }}
                                 onMouseEnter={(e) => handleMouseEnter(e, d)}
                                 onMouseLeave={handleMouseLeave}
+                                onClick={(e) => handleDotClick(e, d)}
                             />
                         ))}
                     </g>
@@ -214,6 +253,7 @@ export default function LiuScreenPlot({
                                 style={{ cursor: 'pointer' }}
                                 onMouseEnter={(e) => highlightPoint && handleMouseEnter(e, highlightPoint)}
                                 onMouseLeave={handleMouseLeave}
+                                onClick={(e) => highlightPoint && handleDotClick(e, highlightPoint)}
                             />
                             <text
                                 x={xScale(highlightPoint.rank)}
@@ -235,19 +275,22 @@ export default function LiuScreenPlot({
             {
                 tooltip.visible && tooltip.content && (
                     <div
+                        ref={tooltipRef}
                         className="tooltip"
                         style={{
                             position: 'fixed',
                             left: tooltip.x,
                             top: tooltip.y,
-                            transform: 'translate(-50%, -120%)',
+                            transform: 'translate(-50%, -100%)',
                             backgroundColor: 'rgba(0, 0, 0, 0.8)',
                             color: 'white',
                             padding: '4px 8px',
                             borderRadius: '4px',
                             fontSize: '11px',
-                            pointerEvents: 'none',
-                            zIndex: 1000,
+                            pointerEvents: tooltip.pinned ? 'auto' : 'none',
+                            userSelect: tooltip.pinned ? 'text' : 'none',
+                            cursor: tooltip.pinned ? 'text' : 'default',
+                            zIndex: 9999,
                             whiteSpace: 'nowrap',
                         }}
                     >

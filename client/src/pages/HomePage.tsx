@@ -184,6 +184,9 @@ export default function HomePage() {
                     query circRNA essentiality data from multiple published studies and explore clinical expression
                     patterns across various cancer types and patient cohorts.
                 </p>
+                <p style={{ marginTop: 'var(--spacing-md)' }}>
+                    <strong>Interactive Plots:</strong> Across the platform, you can hover over data points in the plots to view detailed values. Click on a point to pin the tooltip for easy copy-pasting, and click anywhere else to dismiss it.
+                </p>
             </div>
 
             <div style={{ marginTop: 'var(--spacing-xl)' }}>

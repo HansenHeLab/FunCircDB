@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useCallback } from 'react';
+import React, { useMemo, useRef, useCallback, useEffect } from 'react';
 
 /**
  * ClinicalExpressionPlot - Box plot visualization for clinical expression data
@@ -52,6 +52,7 @@ const DEFAULT_COLORS = [
 
 interface TooltipState {
     visible: boolean;
+    pinned: boolean;
     x: number;
     y: number;
     content: {
@@ -83,8 +84,10 @@ export function ClinicalExpressionPlot({
     }, [data]);
 
     // Tooltip state
+    const tooltipRef = useRef<HTMLDivElement>(null);
     const [tooltip, setTooltip] = React.useState<TooltipState>({
         visible: false,
+        pinned: false,
         x: 0,
         y: 0,
         content: null,
@@ -136,6 +139,68 @@ export function ClinicalExpressionPlot({
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
     }, [title]);
+
+    // Pre-compute stable jitter offsets so points don't shift on re-render
+    const jitterOffsets = useMemo(() => {
+        return data.map(d => {
+            // Simple seeded pseudo-random based on index
+            return d.values.map((_, j) => {
+                const seed = j * 9301 + 49297;
+                return ((seed % 233280) / 233280 - 0.5) * boxWidth * 0.6;
+            });
+        });
+    }, [data, boxWidth]);
+
+    // Tooltip handlers
+    const handleGroupMouseEnter = useCallback((e: React.MouseEvent, item: typeof boxStats[0]) => {
+        if (tooltip.pinned || !item.stats) return;
+        const rect = e.currentTarget.getBoundingClientRect();
+        const { n, mean, median, q1, q3, min, max } = item.stats;
+        setTooltip({
+            visible: true,
+            pinned: false,
+            x: rect.left + rect.width / 2,
+            y: rect.top - 8,
+            content: { group: item.group, n, mean, median, q1, q3, min, max },
+        });
+    }, [tooltip.pinned]);
+
+    const handleGroupMouseLeave = useCallback(() => {
+        if (tooltip.pinned) return;
+        setTooltip(prev => ({ ...prev, visible: false }));
+    }, [tooltip.pinned]);
+
+    const handleGroupClick = useCallback((e: React.MouseEvent, item: typeof boxStats[0]) => {
+        if (!item.stats) return;
+        const rect = e.currentTarget.getBoundingClientRect();
+        const { n, mean, median, q1, q3, min, max } = item.stats;
+        setTooltip({
+            visible: true,
+            pinned: true,
+            x: rect.left + rect.width / 2,
+            y: rect.top - 8,
+            content: { group: item.group, n, mean, median, q1, q3, min, max },
+        });
+    }, []);
+
+    useEffect(() => {
+        if (!tooltip.pinned) return;
+
+        const handleClickOutside = (e: MouseEvent) => {
+            const target = e.target as HTMLElement;
+            if (tooltipRef.current?.contains(target)) return;
+            setTooltip(prev => ({ ...prev, visible: false, pinned: false }));
+        };
+
+        const timer = setTimeout(() => {
+            document.addEventListener('click', handleClickOutside);
+        }, 0);
+
+        return () => {
+            clearTimeout(timer);
+            document.removeEventListener('click', handleClickOutside);
+        };
+    }, [tooltip.pinned]);
 
     return (
         <div className="viz-container" style={{ position: 'relative' }}>
@@ -234,32 +299,16 @@ export function ClinicalExpressionPlot({
                 {/* Box plots */}
                 {boxStats.map((item, i) => {
                     if (!item.stats) return null;
-                    const { q1, median, q3, lowerWhisker, upperWhisker, outliers, n, mean, min, max } = item.stats;
+                    const { q1, median, q3, lowerWhisker, upperWhisker, outliers } = item.stats;
                     const x = xPositions[i];
                     const color = colorScheme[i % colorScheme.length];
 
                     return (
                         <g
                             key={item.group}
-                            onMouseEnter={(e) => {
-                                const rect = e.currentTarget.getBoundingClientRect();
-                                setTooltip({
-                                    visible: true,
-                                    x: rect.left + rect.width / 2,
-                                    y: rect.top,
-                                    content: {
-                                        group: item.group,
-                                        n,
-                                        mean,
-                                        median,
-                                        q1,
-                                        q3,
-                                        min,
-                                        max
-                                    }
-                                });
-                            }}
-                            onMouseLeave={() => setTooltip(prev => ({ ...prev, visible: false }))}
+                            onMouseEnter={(e) => handleGroupMouseEnter(e, item)}
+                            onMouseLeave={handleGroupMouseLeave}
+                            onClick={(e) => handleGroupClick(e, item)}
                             style={{ cursor: 'pointer' }}
                         >
                             {/* Transparent hit target for easier hovering */}
@@ -323,11 +372,11 @@ export function ClinicalExpressionPlot({
                                 strokeWidth="2"
                             />
 
-                            {/* Data points (jittered) */}
+                            {/* Data points (stable jitter) */}
                             {item.values.map((v, j) => (
                                 <circle
                                     key={j}
-                                    cx={x + (Math.random() - 0.5) * boxWidth * 0.6}
+                                    cx={x + (jitterOffsets[i]?.[j] ?? 0)}
                                     cy={margin.top + yScale(v)}
                                     r={3}
                                     fill={color}
@@ -381,6 +430,7 @@ export function ClinicalExpressionPlot({
             {/* Tooltip */}
             {tooltip.visible && tooltip.content && (
                 <div
+                    ref={tooltipRef}
                     style={{
                         position: 'fixed',
                         left: tooltip.x,
@@ -391,10 +441,11 @@ export function ClinicalExpressionPlot({
                         padding: '8px 12px',
                         borderRadius: '4px',
                         fontSize: '12px',
-                        pointerEvents: 'none',
-                        zIndex: 1000,
+                        pointerEvents: tooltip.pinned ? 'auto' : 'none',
+                        userSelect: tooltip.pinned ? 'text' : 'none',
+                        cursor: tooltip.pinned ? 'text' : 'default',
+                        zIndex: 9999,
                         whiteSpace: 'nowrap',
-                        marginTop: '-10px',
                         boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
                     }}
                 >

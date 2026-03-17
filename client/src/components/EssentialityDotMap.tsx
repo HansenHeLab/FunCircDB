@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 
 // ============================================================
 // EssentialityDotMap - SVG visualization ported from R's create.dotmap
@@ -84,6 +84,7 @@ function getDotColor(value: number): string {
 
 interface TooltipState {
     visible: boolean;
+    pinned: boolean;
     x: number;
     y: number;
     content: {
@@ -104,8 +105,10 @@ export function EssentialityDotMap({
 	selectedStudy,
 }: EssentialityDotMapProps) {
     const svgRef = useRef<SVGSVGElement>(null);
+    const tooltipRef = useRef<HTMLDivElement>(null);
     const [tooltip, setTooltip] = useState<TooltipState>({
         visible: false,
+        pinned: false,
         x: 0,
         y: 0,
         content: null,
@@ -133,18 +136,23 @@ export function EssentialityDotMap({
     // const minValue = Math.min(...allValues);
     // const maxValue = Math.max(...allValues);
 
+    // Show tooltip on hover (positioned above the dot using its screen rect)
     const handleMouseEnter = useCallback((
-        e: React.MouseEvent,
+        e: React.MouseEvent<SVGCircleElement>,
         row: number,
         col: number
     ) => {
-        const rect = svgRef.current?.getBoundingClientRect();
-        if (!rect) return;
+        // Don't override a pinned tooltip
+        if (tooltip.pinned) return;
+
+        const circle = e.currentTarget;
+        const rect = circle.getBoundingClientRect();
 
         setTooltip({
             visible: true,
-            x: e.clientX - rect.left,
-            y: e.clientY - rect.top - 10,
+            pinned: false,
+            x: rect.left + rect.width / 2,
+            y: rect.top - 8,
             content: {
                 rowLabel: rowLabels[row],
                 colLabel: colLabels[col],
@@ -152,17 +160,63 @@ export function EssentialityDotMap({
                 pvalue: data.pvalues[row][col],
             },
         });
-    }, [rowLabels, colLabels, data]);
+    }, [rowLabels, colLabels, data, tooltip.pinned]);
 
     const handleMouseLeave = useCallback(() => {
+        if (tooltip.pinned) return;
         setTooltip(prev => ({ ...prev, visible: false }));
-    }, []);
+    }, [tooltip.pinned]);
 
-    const handleClick = useCallback((row: number, col: number) => {
+    // Click on dot to pin the tooltip for copy-pasting
+    const handleDotClick = useCallback((
+        e: React.MouseEvent<SVGCircleElement>,
+        row: number,
+        col: number
+    ) => {
+        const circle = e.currentTarget;
+        const rect = circle.getBoundingClientRect();
+
+        setTooltip({
+            visible: true,
+            pinned: true,
+            x: rect.left + rect.width / 2,
+            y: rect.top - 8,
+            content: {
+                rowLabel: rowLabels[row],
+                colLabel: colLabels[col],
+                value: data.values[row][col],
+                pvalue: data.pvalues[row][col],
+            },
+        });
+
         if (onCellClick) {
             onCellClick(row, col, data.values[row][col], data.pvalues[row][col]);
         }
-    }, [onCellClick, data]);
+    }, [rowLabels, colLabels, data, onCellClick]);
+
+    // Click outside tooltip or dots to dismiss pinned tooltip
+    useEffect(() => {
+        if (!tooltip.pinned) return;
+
+        const handleClickOutside = (e: MouseEvent) => {
+            const target = e.target as HTMLElement;
+            if (tooltipRef.current?.contains(target)) return;
+            if ((target as unknown as SVGElement).closest?.('circle')) return;
+
+            setTooltip(prev => ({ ...prev, visible: false, pinned: false }));
+        };
+
+        const timer = setTimeout(() => {
+            document.addEventListener('click', handleClickOutside);
+        }, 0);
+
+        return () => {
+            clearTimeout(timer);
+            document.removeEventListener('click', handleClickOutside);
+        };
+    }, [tooltip.pinned]);
+
+
 
     const handleExportSVG = useCallback(() => {
         if (!svgRef.current) return;
@@ -285,7 +339,7 @@ export function EssentialityDotMap({
                                     style={{ cursor: 'pointer', transition: 'r 0.2s ease' }}
                                     onMouseEnter={(e) => handleMouseEnter(e, i, j)}
                                     onMouseLeave={handleMouseLeave}
-                                    onClick={() => handleClick(i, j)}
+                                    onClick={(e) => handleDotClick(e, i, j)}
                                 />
                             ))
                         )}
@@ -341,14 +395,20 @@ export function EssentialityDotMap({
                 </svg>
             </div>
 
-            {/* Tooltip */}
+            {/* Tooltip - fixed positioning to avoid clipping by overflow containers */}
             {tooltip.visible && tooltip.content && (
                 <div
+                    ref={tooltipRef}
                     className="tooltip"
                     style={{
+                        position: 'fixed',
                         left: tooltip.x,
                         top: tooltip.y,
                         transform: 'translate(-50%, -100%)',
+                        pointerEvents: tooltip.pinned ? 'auto' : 'none',
+                        userSelect: tooltip.pinned ? 'text' : 'none',
+                        cursor: tooltip.pinned ? 'text' : 'default',
+                        zIndex: 9999,
                     }}
                 >
                     <div><strong>{tooltip.content.rowLabel}</strong></div>
