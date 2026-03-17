@@ -24,6 +24,15 @@ const COLOR_NEGATIVE = '#2563eb';  // Blue for negative log2FC
 const COLOR_POSITIVE = '#dc2626';  // Red for positive log2FC
 const COLOR_NEUTRAL = '#ffffff';   // White for zero
 
+// Discrete p-value thresholds and their colors (black → white)
+const PVALUE_LEVELS: { threshold: number; color: string; label: string }[] = [
+	{ threshold: 0.001, color: 'rgb(0, 0, 0)',       label: '≤ 0.001' },
+	{ threshold: 0.01,  color: 'rgb(64, 64, 64)',     label: '≤ 0.01' },
+	{ threshold: 0.05,  color: 'rgb(128, 128, 128)',   label: '≤ 0.05' },
+	{ threshold: 0.5,   color: 'rgb(192, 192, 192)',   label: '≤ 0.5' },
+	{ threshold: 1,     color: 'rgb(255, 255, 255)',   label: '≤ 1' },
+];
+
 const Legend = (selectedStudy: string | null) => {
 	return (
         <div className='legend'>
@@ -37,32 +46,24 @@ const Legend = (selectedStudy: string | null) => {
 			</div>
 			{selectedStudy !== 'liu-et-al' && (
 				<>
-					<div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
-						<div style={{ width: 12, height: 12, border: '1px solid #ddd', background: '#000' }}></div>
-						<span>Significant (p &lt; 0.05)</span>
-					</div>
-					<div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
-						<div style={{ width: 12, height: 12, border: '1px solid #ddd', background: '#fff' }}></div>
-						<span>Not Significant</span>
-					</div>
+					{PVALUE_LEVELS.map(level => (
+						<div key={level.label} style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
+							<div style={{ width: 12, height: 12, border: '1px solid #ddd', background: level.color }}></div>
+							<span>p {level.label}</span>
+						</div>
+					))}
 				</>
 			)}
         </div>
 	)
 }
 
-// P-value color scale (black = significant, white = not significant)
+// P-value color scale — discrete thresholds (black → white)
 function getPValueColor(pval: number): string {
-    if (pval <= 0.05) {
-        // Dark to medium gray for significant
-        const intensity = Math.max(0, Math.min(1, (pval / 0.05)));
-        const gray = Math.round(intensity * 100);
-        return `rgb(${gray}, ${gray}, ${gray})`;
+    for (const level of PVALUE_LEVELS) {
+        if (pval <= level.threshold) return level.color;
     }
-    // Light gray to white for non-significant
-    const intensity = Math.min(1, (pval - 0.05) / 0.75);
-    const gray = Math.round(100 + intensity * 155);
-    return `rgb(${gray}, ${gray}, ${gray})`;
+    return 'rgb(255, 255, 255)';
 }
 
 // Dot size function: 0.1 + (2 * |log2FC|)
@@ -214,7 +215,7 @@ export function EssentialityDotMap({
                             x={leftMargin + (numCols * cellSize) / 2}
                             y={25}
                             textAnchor="middle"
-                            fontSize="16"
+                            fontSize="18"
                             fontWeight="600"
                             fill="var(--color-text)"
                         >
@@ -229,7 +230,7 @@ export function EssentialityDotMap({
                             x={leftMargin + i * cellSize + cellSize / 2}
                             y={topMargin - 10}
                             textAnchor="middle"
-                            fontSize="11"
+                            fontSize="14"
                             fontWeight="500"
                             fill="var(--color-text)"
                         >
@@ -244,7 +245,7 @@ export function EssentialityDotMap({
                             x={leftMargin - 10}
                             y={topMargin + i * cellSize + cellSize / 2 + 4}
                             textAnchor="end"
-                            fontSize="11"
+                            fontSize="14"
                             fontWeight="500"
                             fill="var(--color-text)"
                         >
@@ -292,7 +293,7 @@ export function EssentialityDotMap({
 
                     {/* Size Legend */}
                     <g transform={`translate(${leftMargin + numCols * cellSize + 20}, ${topMargin})`}>
-                        <text fontSize="11" fontWeight="600" fill="var(--color-text)">log₂FC</text>
+                        <text fontSize="13" fontWeight="600" fill="var(--color-text)">log₂FC</text>
                         {[-2, -1, 0, 1, 2].map((val, i) => (
                             <g key={`legend-${val}`} transform={`translate(0, ${30 + i * 35})`}>
                                 <circle
@@ -303,7 +304,7 @@ export function EssentialityDotMap({
                                     stroke="rgba(0,0,0,0.1)"
                                     strokeWidth="0.5"
                                 />
-                                <text x={40} y={4} fontSize="10" fill="var(--color-text-secondary)">
+                                <text x={40} y={4} fontSize="14" fill="var(--color-text-secondary)">
                                     {val}
                                 </text>
                             </g>
@@ -313,26 +314,28 @@ export function EssentialityDotMap({
                     {/* P-value color legend */}
                     {showPValueLegend && (
                         <g transform={`translate(${leftMargin}, ${topMargin + numRows * cellSize + 20})`}>
-                            <text fontSize="11" fontWeight="600" fill="var(--color-text)">p-value</text>
-                            <defs>
-                                <linearGradient id="pval-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                                    <stop offset="0%" stopColor={getPValueColor(0)} />
-                                    <stop offset="25%" stopColor={getPValueColor(0.05)} />
-                                    <stop offset="100%" stopColor={getPValueColor(1)} />
-                                </linearGradient>
-                            </defs>
-                            <rect
-                                x={0}
-                                y={15}
-                                width={150}
-                                height={12}
-                                fill="url(#pval-gradient)"
-                                stroke="var(--color-border)"
-                                strokeWidth="0.5"
-                            />
-                            <text x={0} y={38} fontSize="9" fill="var(--color-text-secondary)">0</text>
-                            <text x={35} y={38} fontSize="9" fill="var(--color-text-secondary)">0.05</text>
-                            <text x={145} y={38} fontSize="9" fill="var(--color-text-secondary)" textAnchor="end">1</text>
+                            <text fontSize="13" fontWeight="600" fill="var(--color-text)">p-value</text>
+                            {PVALUE_LEVELS.map((level, i) => {
+                                const legendWidth = numCols * cellSize;
+                                const swatchSpacing = legendWidth / PVALUE_LEVELS.length;
+                                const swatchWidth = swatchSpacing - 5;
+                                return (
+                                <g key={level.label} transform={`translate(${i * swatchSpacing}, 15)`}>
+                                    <rect
+                                        x={0}
+                                        y={0}
+                                        width={swatchWidth}
+                                        height={14}
+                                        fill={level.color}
+                                        stroke="var(--color-border)"
+                                        strokeWidth="0.5"
+                                    />
+                                    <text x={swatchWidth / 2} y={28} fontSize="12" fill="var(--color-text-secondary)" textAnchor="middle">
+                                        {level.label}
+                                    </text>
+                                </g>
+                                );
+                            })}
                         </g>
                     )}
                 </svg>

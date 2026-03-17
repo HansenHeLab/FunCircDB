@@ -187,7 +187,7 @@ export function ClinicalExpressionPlot({
                                 x={margin.left - 10}
                                 y={y + 4}
                                 textAnchor="end"
-                                fontSize="10"
+                                fontSize="13"
                                 fill="var(--color-text-secondary)"
                             >
                                 {yVal.toFixed(1)}
@@ -201,7 +201,7 @@ export function ClinicalExpressionPlot({
                     x={margin.left - 50}
                     y={margin.top + plotHeight / 2}
                     textAnchor="middle"
-                    fontSize="12"
+                    fontSize="14"
                     fontWeight="500"
                     fill="var(--color-text)"
                     transform={`rotate(-90, ${margin.left - 50}, ${margin.top + plotHeight / 2})`}
@@ -224,7 +224,7 @@ export function ClinicalExpressionPlot({
                     x={margin.left + plotWidth / 2}
                     y={chartHeight - 10}
                     textAnchor="middle"
-                    fontSize="12"
+                    fontSize="14"
                     fontWeight="500"
                     fill="var(--color-text)"
                 >
@@ -353,7 +353,7 @@ export function ClinicalExpressionPlot({
                                 x={x}
                                 y={margin.top + plotHeight + 15}
                                 textAnchor="end"
-                                fontSize="11"
+                                fontSize="13"
                                 fill="var(--color-text)"
                                 transform={`rotate(-45, ${x}, ${margin.top + plotHeight + 15})`}
                             >
@@ -369,7 +369,7 @@ export function ClinicalExpressionPlot({
                         x={chartWidth / 2}
                         y={25}
                         textAnchor="middle"
-                        fontSize="14"
+                        fontSize="16"
                         fontWeight="600"
                         fill="var(--color-text)"
                     >

@@ -129,7 +129,7 @@ export default function LiuScreenPlot({
                             <text
                                 y={20}
                                 textAnchor="middle"
-                                fontSize={10}
+                                fontSize={13}
                                 fill="var(--color-text-secondary)"
                             >
                                 {tick}
@@ -145,7 +145,7 @@ export default function LiuScreenPlot({
                                 x={-10}
                                 y={3}
                                 textAnchor="end"
-                                fontSize={10}
+                                fontSize={13}
                                 fill="var(--color-text-secondary)"
                             >
                                 {tick.toFixed(2)}
@@ -159,7 +159,7 @@ export default function LiuScreenPlot({
                         y={chartHeight + 40}
                         textAnchor="middle"
                         fill="var(--color-text)"
-                        fontSize={14}
+                        fontSize={16}
                     >
                         Rank
                     </text>
@@ -171,7 +171,7 @@ export default function LiuScreenPlot({
                         textAnchor="middle"
                         transform="rotate(-90)"
                         fill="var(--color-text)"
-                        fontSize={14}
+                        fontSize={16}
                     >
                         CDCscreen Score
                     </text>
@@ -221,7 +221,7 @@ export default function LiuScreenPlot({
                                 textAnchor="middle"
                                 fill="red"
                                 fontWeight="bold"
-                                fontSize={14}
+                                fontSize={16}
                             >
                                 {highlightGene}
                             </text>
