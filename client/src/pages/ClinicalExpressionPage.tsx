@@ -121,8 +121,18 @@ export default function ClinicalExpressionPage() {
             <h1 style={{ marginBottom: 'var(--spacing-lg)' }}>Query circRNA Clinical Expression</h1>
 
             <div className="card" style={{ marginBottom: 'var(--spacing-lg)' }}>
-                <div className="card-header">
-                    <h2 className="card-title">Select Dataset</h2>
+                <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h2 className="card-title" style={{ margin: 0 }}>Select Dataset</h2>
+                    <button
+                        className="btn btn-secondary"
+                        onClick={() => {
+                            setSelectedClinicalDataset(null);
+                            setSelectedClinicalCircRNA(null);
+                            setSelectedClinicalTableRowIndex(null);
+                        }}
+                    >
+                        Clear All Filters
+                    </button>
                 </div>
 
                 <div style={{ display: 'grid', gap: 'var(--spacing-md)', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))' }}>

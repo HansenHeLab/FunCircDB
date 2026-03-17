@@ -99,8 +99,21 @@ export default function EssentialityPage() {
 
             {/* Study Selection and Filters */}
             <div className="card" style={{ marginBottom: 'var(--spacing-lg)' }}>
-                <div className="card-header">
-                    <h2 className="card-title">Select CircRNA Screening Study</h2>
+                <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h2 className="card-title" style={{ margin: 0 }}>Select CircRNA Screening Study</h2>
+                    <button
+                        className="btn btn-secondary"
+                        onClick={() => {
+                            setSelectedStudy(null);
+                            setSelectedCircRNA(null, null);
+                            setSelectedTimepoint(null);
+                            setSelectedCellLine(null);
+                            setSelectedTissueType(null);
+                            setSelectedTableRowIndex(null);
+                        }}
+                    >
+                        Clear All Filters
+                    </button>
                 </div>
 
                 <div style={{ display: 'grid', gap: 'var(--spacing-md)', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
