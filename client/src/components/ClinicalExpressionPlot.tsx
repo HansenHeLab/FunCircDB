@@ -94,11 +94,11 @@ export function ClinicalExpressionPlot({
     });
 
     // Layout
-    const margin = { top: 60, right: 40, bottom: 90, left: 80 };
+    const margin = { top: 60, right: 40, bottom: 120, left: 80 };
     const boxWidth = 60;
     const boxGap = 30;
     const chartWidth = Math.max(400, data.length * (boxWidth + boxGap) + margin.left + margin.right);
-    const chartHeight = 400;
+    const chartHeight = 430;
     const plotWidth = chartWidth - margin.left - margin.right;
     const plotHeight = chartHeight - margin.top - margin.bottom;
 
