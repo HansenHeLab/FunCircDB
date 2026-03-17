@@ -401,13 +401,13 @@ export default function EssentialityPage() {
                     <p style={{ color: 'var(--color-text-secondary)' }}>
                         {(() => {
                             if (studyConfig?.hasTimepoint && !selectedTimepoint) {
-                                return 'Select a timepoint, then select a circRNA from the dropdown above to view functional data.';
+                                return 'Select a timepoint.';
                             }
                             if (studyConfig?.hasCellLine && !selectedCellLine) {
-                                return 'Choose a cell line, then select a circRNA from the dropdown above to view functional data.';
+                                return 'Choose a cell line.';
                             }
                             if (studyConfig?.hasTissue && !selectedTissueType) {
-                                return 'Choose a tissue type, then select a circRNA from the dropdown above to view functional data.';
+                                return 'Choose a tissue type.';
                             }
                             return 'Select a circRNA from the dropdown above to view functional data.';
                         })()}
