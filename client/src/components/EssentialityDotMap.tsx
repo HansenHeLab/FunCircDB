@@ -29,7 +29,6 @@ const PVALUE_LEVELS: { threshold: number; color: string; label: string }[] = [
 	{ threshold: 0.001, color: 'rgb(0, 0, 0)',       label: '≤ 0.001' },
 	{ threshold: 0.01,  color: 'rgb(64, 64, 64)',     label: '≤ 0.01' },
 	{ threshold: 0.05,  color: 'rgb(128, 128, 128)',   label: '≤ 0.05' },
-	{ threshold: 0.5,   color: 'rgb(192, 192, 192)',   label: '≤ 0.5' },
 	{ threshold: 1,     color: 'rgb(255, 255, 255)',   label: '≤ 1' },
 ];
 
