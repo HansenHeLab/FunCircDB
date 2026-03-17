@@ -197,6 +197,32 @@ export default function EssentialityPage() {
                         </div>
                     )}
                 </div>
+
+                {/* Selected indicator */}
+                {selectedCircRNA && (
+                    <div style={{
+                        marginTop: 'var(--spacing-md)',
+                        padding: 'var(--spacing-sm) var(--spacing-md)',
+                        background: 'var(--color-background)',
+                        borderRadius: 'var(--radius-md)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 'var(--spacing-sm)'
+                    }}>
+                        <span style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)' }}>Selected:</span>
+                        <strong>{selectedCircRNA}</strong>
+                        <button
+                            className="btn btn-secondary"
+                            style={{ marginLeft: 'auto', padding: 'var(--spacing-xs) var(--spacing-sm)' }}
+                            onClick={() => {
+                                setSelectedCircRNA(null, null);
+                                setSelectedTableRowIndex(null);
+                            }}
+                        >
+                            Clear
+                        </button>
+                    </div>
+                )}
             </div>
 
             {/* Isoform Table */}
@@ -358,6 +384,35 @@ export default function EssentialityPage() {
                         )
                     )}
                 </Suspense>
+            )}
+
+            {/* General Instruction (No Study Selected) */}
+            {!selectedStudy && (
+                <div className="card" style={{ textAlign: 'center', padding: 'var(--spacing-2xl)' }}>
+                    <p style={{ color: 'var(--color-text-secondary)', fontSize: '1.1rem' }}>
+                        Select a screening study to begin querying circRNA functional data.
+                    </p>
+                </div>
+            )}
+
+            {/* Instruction when study selected but waiting on filters/gene */}
+            {selectedStudy && !selectedCircRNA && (
+                <div className="card" style={{ textAlign: 'center', padding: 'var(--spacing-lg)' }}>
+                    <p style={{ color: 'var(--color-text-secondary)' }}>
+                        {(() => {
+                            if (studyConfig?.hasTimepoint && !selectedTimepoint) {
+                                return 'Select a timepoint, then select a circRNA from the dropdown above to view functional data.';
+                            }
+                            if (studyConfig?.hasCellLine && !selectedCellLine) {
+                                return 'Choose a cell line, then select a circRNA from the dropdown above to view functional data.';
+                            }
+                            if (studyConfig?.hasTissue && !selectedTissueType) {
+                                return 'Choose a tissue type, then select a circRNA from the dropdown above to view functional data.';
+                            }
+                            return 'Select a circRNA from the dropdown above to view functional data.';
+                        })()}
+                    </p>
+                </div>
             )}
         </div>
     );
