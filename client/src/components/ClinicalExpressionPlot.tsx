@@ -45,6 +45,40 @@ function calculateBoxStats(values: number[]) {
     return { q1, median, q3, lowerWhisker, upperWhisker, outliers, min: sorted[0], max: sorted[n - 1], n, mean: values.reduce((a, b) => a + b, 0) / n };
 }
 
+// Generate "nice" tick values for an axis, similar to d3.ticks
+function niceAxisTicks(rawMin: number, rawMax: number, targetCount = 5): number[] {
+    const range = rawMax - rawMin;
+    if (range === 0) return [rawMin];
+
+    // Find a "nice" step size
+    const roughStep = range / (targetCount - 1);
+    const magnitude = Math.pow(10, Math.floor(Math.log10(roughStep)));
+    const residual = roughStep / magnitude;
+
+    let niceStep: number;
+    if (residual <= 1.5) niceStep = 1 * magnitude;
+    else if (residual <= 3) niceStep = 2 * magnitude;
+    else if (residual <= 7) niceStep = 5 * magnitude;
+    else niceStep = 10 * magnitude;
+
+    const niceMin = Math.floor(rawMin / niceStep) * niceStep;
+    const niceMax = Math.ceil(rawMax / niceStep) * niceStep;
+
+    const ticks: number[] = [];
+    for (let v = niceMin; v <= niceMax + niceStep * 0.001; v += niceStep) {
+        ticks.push(parseFloat(v.toPrecision(12))); // avoid floating-point drift
+    }
+    return ticks;
+}
+
+// Format a tick value with enough decimals to be unique
+function formatTick(value: number, step: number): string {
+    // Use enough decimal places so that consecutive ticks differ
+    const decimals = Math.max(0, -Math.floor(Math.log10(step)) + 1);
+    // But cap at a reasonable maximum
+    return value.toFixed(Math.min(decimals, 6));
+}
+
 const DEFAULT_COLORS = [
     '#4299e1', '#48bb78', '#ed8936', '#f56565', '#9f7aea',
     '#38b2ac', '#ed64a6', '#667eea', '#fc8181', '#68d391',
@@ -142,12 +176,28 @@ export function ClinicalExpressionPlot({
 
     // Pre-compute stable jitter offsets so points don't shift on re-render
     const jitterOffsets = useMemo(() => {
-        return data.map(d => {
-            // Simple seeded pseudo-random based on index
-            return d.values.map((_, j) => {
-                const seed = j * 9301 + 49297;
-                return ((seed % 233280) / 233280 - 0.5) * boxWidth * 0.6;
+        // mulberry32 – well-tested 32-bit PRNG, returns value in [0, 1)
+        const rand = (seed: number) => {
+            let t = (seed + 0x6D2B79F5) | 0;
+            t = Math.imul(t ^ (t >>> 15), t | 1);
+            t ^= (t + Math.imul(t ^ (t >>> 7), t | 61)) | 0;
+            return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
+        return data.map((d, i) => {
+            const n = d.values.length;
+            const spread = boxWidth * 0.5 * Math.min(1, n / 15);
+            // Sort by value so we can alternate jitter direction for
+            // vertically adjacent points – prevents diagonal patterns
+            const sorted = d.values
+                .map((v, j) => ({ j, v }))
+                .sort((a, b) => a.v - b.v);
+            const offsets = new Array<number>(n);
+            sorted.forEach((item, rank) => {
+                const sign = rank % 2 === 0 ? 1 : -1;
+                const magnitude = (0.25 + rand(i * 9973 + rank * 6971) * 0.75) * spread * 0.5;
+                offsets[item.j] = sign * magnitude;
             });
+            return offsets;
         });
     }, [data, boxWidth]);
 
@@ -236,30 +286,33 @@ export function ClinicalExpressionPlot({
                 />
 
                 {/* Y Axis ticks */}
-                {[0, 0.25, 0.5, 0.75, 1].map(pct => {
-                    const yVal = yMin + pct * (yMax - yMin);
-                    const y = margin.top + yScale(yVal);
-                    return (
-                        <g key={pct}>
-                            <line
-                                x1={margin.left - 5}
-                                y1={y}
-                                x2={margin.left}
-                                y2={y}
-                                stroke="var(--color-text-secondary)"
-                            />
-                            <text
-                                x={margin.left - 10}
-                                y={y + 4}
-                                textAnchor="end"
-                                fontSize="13"
-                                fill="var(--color-text-secondary)"
-                            >
-                                {yVal.toFixed(1)}
-                            </text>
-                        </g>
-                    );
-                })}
+                {(() => {
+                    const ticks = niceAxisTicks(yMin, yMax, 5);
+                    const step = ticks.length > 1 ? ticks[1] - ticks[0] : 1;
+                    return ticks.map(yVal => {
+                        const y = margin.top + yScale(yVal);
+                        return (
+                            <g key={yVal}>
+                                <line
+                                    x1={margin.left - 5}
+                                    y1={y}
+                                    x2={margin.left}
+                                    y2={y}
+                                    stroke="var(--color-text-secondary)"
+                                />
+                                <text
+                                    x={margin.left - 10}
+                                    y={y + 4}
+                                    textAnchor="end"
+                                    fontSize="13"
+                                    fill="var(--color-text-secondary)"
+                                >
+                                    {formatTick(yVal, step)}
+                                </text>
+                            </g>
+                        );
+                    });
+                })()}
 
                 {/* Y Axis Label */}
                 <text
@@ -299,7 +352,7 @@ export function ClinicalExpressionPlot({
                 {/* Box plots */}
                 {boxStats.map((item, i) => {
                     if (!item.stats) return null;
-                    const { q1, median, q3, lowerWhisker, upperWhisker, outliers } = item.stats;
+                    const { q1, median, q3, lowerWhisker, upperWhisker } = item.stats;
                     const x = xPositions[i];
                     const color = colorScheme[i % colorScheme.length];
 
@@ -372,30 +425,32 @@ export function ClinicalExpressionPlot({
                                 strokeWidth="2"
                             />
 
-                            {/* Data points (stable jitter) */}
-                            {item.values.map((v, j) => (
-                                <circle
-                                    key={j}
-                                    cx={x + (jitterOffsets[i]?.[j] ?? 0)}
-                                    cy={margin.top + yScale(v)}
-                                    r={3}
-                                    fill={color}
-                                    fillOpacity="0.6"
-                                />
-                            ))}
-
-                            {/* Outliers (distinct markers) */}
-                            {outliers.map((v, j) => (
-                                <circle
-                                    key={`outlier-${j}`}
-                                    cx={x}
-                                    cy={margin.top + yScale(v)}
-                                    r={4}
-                                    fill="none"
-                                    stroke={color}
-                                    strokeWidth={1.5}
-                                />
-                            ))}
+                            {/* Data points (stable jitter) — unified pass */}
+                            {item.values.map((v, j) => {
+                                const isOutlier = v < lowerWhisker || v > upperWhisker;
+                                const cx = x + (jitterOffsets[i]?.[j] ?? 0);
+                                const cy = margin.top + yScale(v);
+                                return isOutlier ? (
+                                    <circle
+                                        key={j}
+                                        cx={cx}
+                                        cy={cy}
+                                        r={4}
+                                        fill="none"
+                                        stroke={color}
+                                        strokeWidth={1.5}
+                                    />
+                                ) : (
+                                    <circle
+                                        key={j}
+                                        cx={cx}
+                                        cy={cy}
+                                        r={3}
+                                        fill={color}
+                                        fillOpacity="0.6"
+                                    />
+                                );
+                            })}
 
                             {/* Group label - pushed down */}
                             <text
