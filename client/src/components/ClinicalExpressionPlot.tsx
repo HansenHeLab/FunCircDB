@@ -136,10 +136,13 @@ export function ClinicalExpressionPlot({
     const plotWidth = chartWidth - margin.left - margin.right;
     const plotHeight = chartHeight - margin.top - margin.bottom;
 
-    // Y scale
+    // Y scale – compute nice ticks first, then use their bounds for the scale
     const allValues = data.flatMap(d => d.values);
-    const yMin = Math.min(...allValues) * 0.9;
-    const yMax = Math.max(...allValues) * 1.1;
+    const rawYMin = Math.min(...allValues) * 0.9;
+    const rawYMax = Math.max(...allValues) * 1.1;
+    const yTicks = niceAxisTicks(rawYMin, rawYMax, 5);
+    const yMin = yTicks[0];
+    const yMax = yTicks[yTicks.length - 1];
     const yScale = (v: number) => plotHeight - ((v - yMin) / (yMax - yMin)) * plotHeight;
 
     // X positions - center properly for single box
@@ -287,9 +290,8 @@ export function ClinicalExpressionPlot({
 
                 {/* Y Axis ticks */}
                 {(() => {
-                    const ticks = niceAxisTicks(yMin, yMax, 5);
-                    const step = ticks.length > 1 ? ticks[1] - ticks[0] : 1;
-                    return ticks.map(yVal => {
+                    const step = yTicks.length > 1 ? yTicks[1] - yTicks[0] : 1;
+                    return yTicks.map(yVal => {
                         const y = margin.top + yScale(yVal);
                         return (
                             <g key={yVal}>

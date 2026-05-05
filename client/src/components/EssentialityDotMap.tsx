@@ -16,7 +16,7 @@ export interface EssentialityDotMapProps {
     title?: string;
     onCellClick?: (row: number, col: number, value: number, pvalue: number) => void;
     showPValueLegend?: boolean;
-	selectedStudy: string | null
+    selectedStudy: string | null
 }
 
 // BoutrosLab dotmap color palette
@@ -26,35 +26,35 @@ const COLOR_NEUTRAL = '#ffffff';   // White for zero
 
 // Discrete p-value thresholds and their colors (black → white)
 const PVALUE_LEVELS: { threshold: number; color: string; label: string }[] = [
-	{ threshold: 0.001, color: 'rgb(0, 0, 0)',       label: '≤ 0.001' },
-	{ threshold: 0.01,  color: 'rgb(64, 64, 64)',     label: '≤ 0.01' },
-	{ threshold: 0.05,  color: 'rgb(128, 128, 128)',   label: '≤ 0.05' },
-	{ threshold: 1,     color: 'rgb(255, 255, 255)',   label: '≤ 1' },
+    { threshold: 0.001, color: 'rgb(0, 0, 0)', label: '≤ 0.001' },
+    { threshold: 0.01, color: 'rgb(64, 64, 64)', label: '≤ 0.01' },
+    { threshold: 0.05, color: 'rgb(128, 128, 128)', label: '≤ 0.05' },
+    { threshold: 1, color: 'rgb(255, 255, 255)', label: '≤ 1' },
 ];
 
 const Legend = (selectedStudy: string | null) => {
-	return (
+    return (
         <div className='legend'>
-			<div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
-				<div style={{ width: 12, height: 12, borderRadius: '50%', background: '#dc2626' }}></div>
-				<span>Positive log₂FC</span>
-			</div>
-			<div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
-				<div style={{ width: 12, height: 12, borderRadius: '50%', background: '#2563eb' }}></div>
-				<span>Negative log₂FC</span>
-			</div>
-			{selectedStudy !== 'liu-et-al' && (
-				<>
-					{PVALUE_LEVELS.map(level => (
-						<div key={level.label} style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
-							<div style={{ width: 12, height: 12, border: '1px solid #ddd', background: level.color }}></div>
-							<span>p {level.label}</span>
-						</div>
-					))}
-				</>
-			)}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
+                <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#dc2626' }}></div>
+                <span>Positive log₂FC</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
+                <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#2563eb' }}></div>
+                <span>Negative log₂FC</span>
+            </div>
+            {selectedStudy !== 'liu-et-al' && (
+                <>
+                    {PVALUE_LEVELS.map(level => (
+                        <div key={level.label} style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
+                            <div style={{ width: 12, height: 12, border: '1px solid #ddd', background: level.color }}></div>
+                            <span>p {level.label}</span>
+                        </div>
+                    ))}
+                </>
+            )}
         </div>
-	)
+    )
 }
 
 // P-value color scale — discrete thresholds (black → white)
@@ -101,7 +101,7 @@ export function EssentialityDotMap({
     title,
     onCellClick,
     showPValueLegend = true,
-	selectedStudy,
+    selectedStudy,
 }: EssentialityDotMapProps) {
     const svgRef = useRef<SVGSVGElement>(null);
     const tooltipRef = useRef<HTMLDivElement>(null);
@@ -246,7 +246,7 @@ export function EssentialityDotMap({
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-md)' }}>
                 <h3 className="viz-title">{title || 'Essentiality DotMap'}</h3>
                 <button className="btn btn-secondary" onClick={handleExportSVG}>
-					Export SVG
+                    Export SVG
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                         <polyline points="7,10 12,15 17,10" />
@@ -255,7 +255,7 @@ export function EssentialityDotMap({
                 </button>
             </div>
 
-            <div style={{ overflowX: 'auto', display: 'flex', justifyContent: 'center'}}>
+            <div style={{ overflowX: 'auto', display: 'flex', justifyContent: 'center' }}>
                 <svg
                     ref={svgRef}
                     width={svgWidth}
@@ -373,20 +373,20 @@ export function EssentialityDotMap({
                                 const swatchSpacing = legendWidth / PVALUE_LEVELS.length;
                                 const swatchWidth = swatchSpacing - 5;
                                 return (
-                                <g key={level.label} transform={`translate(${i * swatchSpacing}, 15)`}>
-                                    <rect
-                                        x={0}
-                                        y={0}
-                                        width={swatchWidth}
-                                        height={14}
-                                        fill={level.color}
-                                        stroke="var(--color-border)"
-                                        strokeWidth="0.5"
-                                    />
-                                    <text x={swatchWidth / 2} y={28} fontSize="12" fill="var(--color-text-secondary)" textAnchor="middle">
-                                        {level.label}
-                                    </text>
-                                </g>
+                                    <g key={level.label} transform={`translate(${i * swatchSpacing}, 15)`}>
+                                        <rect
+                                            x={0}
+                                            y={0}
+                                            width={swatchWidth}
+                                            height={14}
+                                            fill={level.color}
+                                            stroke="var(--color-border)"
+                                            strokeWidth="0.5"
+                                        />
+                                        <text x={swatchWidth / 2} y={28} fontSize="12" fill="var(--color-text-secondary)" textAnchor="middle">
+                                            {level.label}
+                                        </text>
+                                    </g>
                                 );
                             })}
                         </g>
@@ -416,7 +416,7 @@ export function EssentialityDotMap({
                     <div>p-value: {showPValueLegend ? tooltip.content.pvalue.toFixed(4) : 'None (threshold based)'}</div>
                 </div>
             )}
-			{Legend(selectedStudy)}
+            {Legend(selectedStudy)}
         </div>
     );
 }
