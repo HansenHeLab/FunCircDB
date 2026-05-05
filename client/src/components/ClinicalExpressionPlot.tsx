@@ -427,32 +427,17 @@ export function ClinicalExpressionPlot({
                                 strokeWidth="2"
                             />
 
-                            {/* Data points (stable jitter) — unified pass */}
-                            {item.values.map((v, j) => {
-                                const isOutlier = v < lowerWhisker || v > upperWhisker;
-                                const cx = x + (jitterOffsets[i]?.[j] ?? 0);
-                                const cy = margin.top + yScale(v);
-                                return isOutlier ? (
-                                    <circle
-                                        key={j}
-                                        cx={cx}
-                                        cy={cy}
-                                        r={4}
-                                        fill="none"
-                                        stroke={color}
-                                        strokeWidth={1.5}
-                                    />
-                                ) : (
-                                    <circle
-                                        key={j}
-                                        cx={cx}
-                                        cy={cy}
-                                        r={3}
-                                        fill={color}
-                                        fillOpacity="0.6"
-                                    />
-                                );
-                            })}
+                            {/* Data points with jitter */}
+                            {item.values.map((v, j) => (
+                                <circle
+                                    key={j}
+                                    cx={x + (jitterOffsets[i]?.[j] ?? 0)}
+                                    cy={margin.top + yScale(v)}
+                                    r={3}
+                                    fill={color}
+                                    fillOpacity="0.6"
+                                />
+                            ))}
 
                             {/* Group label - pushed down */}
                             <text
